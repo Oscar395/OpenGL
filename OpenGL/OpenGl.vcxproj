@@ -626,6 +626,8 @@
     <None Include="dependencies\include\glm\gtx\wrap.inl" />
     <None Include="fragmentShader.frag" />
     <None Include="models\backpack\backpack.mtl" />
+    <None Include="shaders\framebuffers_screen.frag" />
+    <None Include="shaders\framebuffers_screen.vert" />
     <None Include="shaders\lightShader.frag" />
     <None Include="shaders\lightShader.vert" />
     <None Include="shaders\light_cube.frag" />

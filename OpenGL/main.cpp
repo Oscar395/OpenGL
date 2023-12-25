@@ -65,10 +65,6 @@ int main() {
 	stbi_set_flip_vertically_on_load(true);
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -77,8 +73,64 @@ int main() {
 
 	Shader lightShader("shaders/lightShader.vert", "shaders/lightShader.frag");
 	Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
+	Shader screenShader("shaders/framebuffers_screen.vert", "shaders/framebuffers_screen.frag");
 
 	//Shader lightCubeShader("shaders/light_cube.vert", "shaders/light_cube.frag");
+
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates. NOTE that this plane is now much smaller and at the top of the screen
+		// positions   // texCoords
+		-0.3f,  1.0f,  0.0f, 1.0f,
+		-0.3f,  0.7f,  0.0f, 0.0f,
+		 0.3f,  0.7f,  1.0f, 0.0f,
+
+		-0.3f,  1.0f,  0.0f, 1.0f,
+		 0.3f,  0.7f,  1.0f, 0.0f,
+		 0.3f,  1.0f,  1.0f, 1.0f
+	};
+
+	// screen quad VAO
+	unsigned int quadVAO, quadVBO;
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	screenShader.use();
+	screenShader.setInt("screenTexture", 0);
+
+	// Framebuffer
+	unsigned int framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	unsigned int textureColorbuffer;
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach it to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERRO::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 	vector<glm::vec3> vegetation;
 	vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
@@ -100,26 +152,23 @@ int main() {
 
 		proccesInput(window);
 
-		std::map<float, glm::vec3> sorted;
-		for (unsigned int i = 0; i < vegetation.size(); i++)
-		{
-			float distance = glm::length(camera.Position - vegetation[i]);
-			sorted[distance] = vegetation[i];
-		}
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		float TIME = (sin(currentFrame) / 2.0f) + 0.05f;
 
 		glm::mat4 model = glm::mat4(1.0f);
+		camera.Yaw += 180.f;
+		camera.ProcessMouseMovement(0, 0, false);
 		glm::mat4 view = camera.GetViewMatrix();
+		camera.Yaw -= 180.0f;
+		camera.ProcessMouseMovement(0, 0, true);
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
-		shaderSingleColor.use();
-		shaderSingleColor.setMat4("view", view);
-		shaderSingleColor.setMat4("projection", projection);
 
 		lightShader.use();
 		lightShader.setFloat("material.shininess", 32.0f);
@@ -128,8 +177,6 @@ int main() {
 		lightShader.setMat4("projection", projection);
 		lightShader.setMat4("view", view);
 		lightShader.setFloat("time", TIME);
-
-		glStencilMask(0x00);
 
 		//plane && lights
 		model = glm::mat4(1.0f);
@@ -147,16 +194,13 @@ int main() {
 
 		glDisable(GL_CULL_FACE);
 		// windows
-		for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+		for (unsigned int i = 0; i < vegetation.size(); i++){
 			model = glm::mat4(1.0f);
-			model = glm::translate(model, it->second);
+			model = glm::translate(model, vegetation[i]);
 			lightShader.setMat4("model", model);
 			Grass.Draw(lightShader);
 		}
 		glEnable(GL_CULL_FACE);
-
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
 
 		//cubes
 		for (int i = 0; i < 2; i++)
@@ -168,25 +212,53 @@ int main() {
 			Cube.Draw(lightShader);
 		}
 
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shaderSingleColor.use();
-		float scale = 1.1f;
+		view = camera.GetViewMatrix();
+		lightShader.setMat4("view", view);
 
+		//plane && lights
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		lightShader.setMat4("model", model);
+		setupLights(lightShader);
+		Modelo.Draw(lightShader);
+
+		//tower
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-2.0f, -1.8f, -4.0f));
+		lightShader.setMat4("model", model);
+		Tower.Draw(lightShader);
+
+		glDisable(GL_CULL_FACE);
+		// windows
+		for (unsigned int i = 0; i < vegetation.size(); i++) {
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, vegetation[i]);
+			lightShader.setMat4("model", model);
+			Grass.Draw(lightShader);
+		}
+		glEnable(GL_CULL_FACE);
+
+		//cubes
 		for (int i = 0; i < 2; i++)
 		{
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f + i * 3));
-			model = glm::scale(model, glm::vec3(scale, scale, scale));
-			shaderSingleColor.setMat4("model", model);
-			Cube.Draw(shaderSingleColor);
+			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			lightShader.setMat4("model", model);
+			Cube.Draw(lightShader);
 		}
 
-		glStencilMask(0xFF);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_DEPTH_TEST);
+
+		screenShader.use();
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 
@@ -196,6 +268,12 @@ int main() {
 	glDeleteProgram(lightShader.ID);
 	//glDeleteProgram(lightCubeShader.ID);
 	glDeleteProgram(shaderSingleColor.ID);
+	glDeleteProgram(screenShader.ID);
+
+	glDeleteVertexArrays(1, &quadVAO);
+	glDeleteBuffers(1, &quadVBO);
+	glDeleteRenderbuffers(1, &rbo);
+	glDeleteFramebuffers(1, &framebuffer);
 
 	glfwTerminate();
 

@@ -1469,6 +1469,8 @@
     <None Include="dependencies\assimp\lib\assimp-vc140-mt.ilk" />
     <None Include="models\backpack\backpack.mtl" />
     <None Include="shaders\shaderSingleColor.frag" />
+    <None Include="shaders\framebuffers_screen.frag" />
+    <None Include="shaders\framebuffers_screen.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="dependencies\include\glm\CMakeLists.txt" />
