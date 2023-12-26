@@ -1440,8 +1440,8 @@
     </None>
     <None Include="shaders\lightShader.vert" />
     <None Include="shaders\lightShader.frag" />
-    <None Include="shaders\light_cube.vert" />
-    <None Include="shaders\light_cube.frag" />
+    <None Include="shaders\skybox_reflect.vert" />
+    <None Include="shaders\skybox_reflect.frag" />
     <None Include="dependencies\assimp\include\assimp\color4.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>
@@ -1471,6 +1471,8 @@
     <None Include="shaders\shaderSingleColor.frag" />
     <None Include="shaders\framebuffers_screen.frag" />
     <None Include="shaders\framebuffers_screen.vert" />
+    <None Include="shaders\skybox.vert" />
+    <None Include="shaders\skybox.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="dependencies\include\glm\CMakeLists.txt" />

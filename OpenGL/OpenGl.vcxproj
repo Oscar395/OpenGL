@@ -630,9 +630,11 @@
     <None Include="shaders\framebuffers_screen.vert" />
     <None Include="shaders\lightShader.frag" />
     <None Include="shaders\lightShader.vert" />
-    <None Include="shaders\light_cube.frag" />
-    <None Include="shaders\light_cube.vert" />
+    <None Include="shaders\skybox_reflect.frag" />
+    <None Include="shaders\skybox_reflect.vert" />
     <None Include="shaders\shaderSingleColor.frag" />
+    <None Include="shaders\skybox.frag" />
+    <None Include="shaders\skybox.vert" />
     <None Include="vertexShader.vert" />
   </ItemGroup>
   <ItemGroup>
