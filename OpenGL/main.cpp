@@ -72,6 +72,8 @@ int main() {
 
 	glEnable(GL_CULL_FACE);
 
+	glEnable(GL_PROGRAM_POINT_SIZE);
+
 	Shader lightShader("shaders/lightShader.vert", "shaders/lightShader.frag");
 	Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
 	Shader screenShader("shaders/framebuffers_screen.vert", "shaders/framebuffers_screen.frag");
@@ -202,6 +204,30 @@ int main() {
 		std::cout << "ERRO::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	// uniform buffer object
+	unsigned int uniformBlockIndexLight = glGetUniformBlockIndex(lightShader.ID, "Matrices");
+	unsigned int uniformBlockIndexReflectSkybox = glGetUniformBlockIndex(skyboxReflectShader.ID, "Matrices");
+	unsigned int uniformBlockIndexSkybox = glGetUniformBlockIndex(skyboxShader.ID, "Matrices");
+
+	glUniformBlockBinding(lightShader.ID, uniformBlockIndexLight, 0);
+	glUniformBlockBinding(skyboxReflectShader.ID, uniformBlockIndexReflectSkybox, 0);
+	glUniformBlockBinding(skyboxShader.ID, uniformBlockIndexSkybox, 0);
+	
+	unsigned int uboMatrices;
+	glGenBuffers(1, &uboMatrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
+	// store the projection matrix
+	glm::mat4 projection = glm::perspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	// grass
 	vector<glm::vec3> vegetation;
 	vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
 	vegetation.push_back(glm::vec3(1.5f, 0.0f, 0.51f));
@@ -222,26 +248,27 @@ int main() {
 
 		proccesInput(window);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// set view matrix
+		glm::mat4 view = camera.GetViewMatrix();
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 		float TIME = (sin(currentFrame) / 2.0f) + 0.05f;
 
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 
 		lightShader.use();
 		lightShader.setFloat("material.shininess", 32.0f);
 		// view/projection transformations
 		lightShader.setVec3("viewPos", camera.Position);
-		lightShader.setMat4("projection", projection);
-		lightShader.setMat4("view", view);
 		lightShader.setFloat("time", TIME);
 
 		//plane && lights
@@ -270,8 +297,6 @@ int main() {
 
 		//cubes
 		skyboxReflectShader.use();
-		skyboxReflectShader.setMat4("projection", projection);
-		skyboxReflectShader.setMat4("view", view);
 		skyboxReflectShader.setVec3("cameraPos", camera.Position);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -289,9 +314,7 @@ int main() {
 		// skybox
 		glDepthFunc(GL_EQUAL);
 		skyboxShader.use();
-		view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-		skyboxShader.setMat4("view", view);
-		skyboxShader.setMat4("projection", projection);
+		//view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
 		glBindVertexArray(skyboxVAO);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextures);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -299,15 +322,15 @@ int main() {
 		glDepthFunc(GL_LESS);
 
 		// draw screen quad texture
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glDisable(GL_DEPTH_TEST);
+		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		//glClear(GL_COLOR_BUFFER_BIT);
 
-		screenShader.use();
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//screenShader.use();
+		//glBindVertexArray(quadVAO);
+		//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 
