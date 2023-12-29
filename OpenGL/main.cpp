@@ -71,8 +71,8 @@ int main() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_CULL_FACE);
-
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	//glEnable(GL_PROGRAM_POINT_SIZE);
+	glEnable(GL_MULTISAMPLE);
 
 	Shader lightShader("shaders/lightShader.vert", "shaders/lightShader.frag");
 	Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
@@ -173,36 +173,48 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	screenShader.use();
-	screenShader.setInt("screenTexture", 0);
-
-	// Framebuffer
+	// MSAA Framebuffer
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	unsigned int textureColorbuffer;
-	glGenTextures(1, &textureColorbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// attach it to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	unsigned int textureColorbufferMultiSampled;
+	glGenTextures(1, &textureColorbufferMultiSampled);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, 800, 600, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled, 0);
 
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, 800, 600);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERRO::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// configure second post-processing framebuffer
+	unsigned int intermediateFBO;
+	glGenFramebuffers(1, &intermediateFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+	// create a color attachment texture
+	unsigned int screenTexture;
+	glGenTextures(1, &screenTexture);
+	glBindTexture(GL_TEXTURE_2D, screenTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);	// we only need a color buffer
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	screenShader.use();
+	screenShader.setInt("screenTexture", 0);
 
 	// uniform buffer object
 	unsigned int uniformBlockIndexLight = glGetUniformBlockIndex(lightShader.ID, "Matrices");
@@ -248,12 +260,13 @@ int main() {
 
 		proccesInput(window);
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glEnable(GL_DEPTH_TEST);
-
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
 
 		// set view matrix
 		glm::mat4 view = camera.GetViewMatrix();
@@ -321,16 +334,21 @@ int main() {
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS);
 
-		// draw screen quad texture
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glDisable(GL_DEPTH_TEST);
-		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		//glClear(GL_COLOR_BUFFER_BIT);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+		glBlitFramebuffer(0, 0, 800, 600, 0, 0, 800, 600, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-		//screenShader.use();
-		//glBindVertexArray(quadVAO);
-		//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
+		// draw screen quad texture
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.use();
+		glBindVertexArray(quadVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, screenTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 
@@ -428,16 +446,16 @@ void setupLights(Shader lightShader) {
 	lightShader.setFloat("pointLights[0].quadratic", 0.032f);
 
 	// spotLight
-	// lightShader.setVec3("spotLight.position", camera.Position);
-	// lightShader.setVec3("spotLight.direction", camera.Front);
-	// lightShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-	// lightShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-	// lightShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-	// lightShader.setFloat("spotLight.constant", 1.0f);
-	// lightShader.setFloat("spotLight.linear", 0.09f);
-	// lightShader.setFloat("spotLight.quadratic", 0.032f);
-	// lightShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-	// lightShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+	//lightShader.setVec3("spotLight.position", camera.Position);
+	//lightShader.setVec3("spotLight.direction", camera.Front);
+	//lightShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+	//lightShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+	//lightShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+	//lightShader.setFloat("spotLight.constant", 1.0f);
+	//lightShader.setFloat("spotLight.linear", 0.09f);
+	//lightShader.setFloat("spotLight.quadratic", 0.032f);
+	//lightShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+	//lightShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 }
 
 unsigned int loadCubemap(vector<std::string> faces) {
