@@ -18,6 +18,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void proccesInput(GLFWwindow* window);
 void setupLights(Shader lightingshader);
 unsigned int loadCubemap(vector<std::string> faces);
+void renderScene(Shader shader, Model Modelo, Model Tower, Model Cube, glm::vec3 lightPos);
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -27,8 +28,6 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = 400;
 float lastY = 300;
 bool firstMouse = true;
-
-glm::vec3 lightPos(1.2f, 1.0f, 0.0f);
 
 int main() {
 
@@ -74,11 +73,14 @@ int main() {
 	//glEnable(GL_PROGRAM_POINT_SIZE);
 	glEnable(GL_MULTISAMPLE);
 
+	glEnable(GL_FRAMEBUFFER_SRGB);
+
 	Shader lightShader("shaders/lightShader.vert", "shaders/lightShader.frag");
 	Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
 	Shader screenShader("shaders/framebuffers_screen.vert", "shaders/framebuffers_screen.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 	Shader skyboxReflectShader("shaders/skybox_reflect.vert", "shaders/skybox_reflect.frag");
+	Shader simpleDepthShader("shaders/simple_depth_shader.vert", "shaders/simple_depth_shader.frag");
 
 	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 		// positions   // texCoords
@@ -194,7 +196,7 @@ int main() {
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// configure second post-processing framebuffer
 	unsigned int intermediateFBO;
@@ -215,6 +217,31 @@ int main() {
 
 	screenShader.use();
 	screenShader.setInt("screenTexture", 0);
+	
+	// shadows frame buffer
+	unsigned int depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+
+	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+	unsigned int depthMap;
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindBuffer(GL_FRAMEBUFFER, 0);
+
+	lightShader.use();
+	lightShader.setInt("shadowMap", 1);
 
 	// uniform buffer object
 	unsigned int uniformBlockIndexLight = glGetUniformBlockIndex(lightShader.ID, "Matrices");
@@ -252,6 +279,8 @@ int main() {
 	Model Tower("models/tower/wooden watch tower2.obj");
 	Model Grass("models/grass/grass.obj");
 
+	glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = (float) glfwGetTime();
@@ -260,13 +289,33 @@ int main() {
 
 		proccesInput(window);
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		float near_plane = 1.0f, far_plane = 7.5f;
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+
+		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+		simpleDepthShader.use();
+		simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		renderScene(simpleDepthShader, Modelo, Tower, Cube, lightPos);
+		glEnable(GL_CULL_FACE);
+
+		// render normal
+		// ---------------------------------------
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+		glViewport(0, 0, 800, 600);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
 
 		// set view matrix
 		glm::mat4 view = camera.GetViewMatrix();
@@ -276,64 +325,30 @@ int main() {
 
 		float TIME = (sin(currentFrame) / 2.0f) + 0.05f;
 
-		glm::mat4 model = glm::mat4(1.0f);
-
 		lightShader.use();
 		lightShader.setFloat("material.shininess", 32.0f);
 		// view/projection transformations
 		lightShader.setVec3("viewPos", camera.Position);
 		lightShader.setFloat("time", TIME);
+		lightShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		lightShader.setVec3("lightPos", lightPos);
 
-		//plane && lights
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		lightShader.setMat4("model", model);
 		setupLights(lightShader);
-		Modelo.Draw(lightShader);
 
-		//tower
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-2.0f, -1.8f, -4.0f));
-		lightShader.setMat4("model", model);
-		Tower.Draw(lightShader);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		renderScene(lightShader, Modelo, Tower, Cube, lightPos);
 
-		glDisable(GL_CULL_FACE);
-		// windows
-		for (unsigned int i = 0; i < vegetation.size(); i++){
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, vegetation[i]);
-			lightShader.setMat4("model", model);
-			Grass.Draw(lightShader);
-		}
-		glEnable(GL_CULL_FACE);
-
-		//cubes
-		skyboxReflectShader.use();
-		skyboxReflectShader.setVec3("cameraPos", camera.Position);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextures);
-
-		for (int i = 0; i < 2; i++)
-		{
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f + i * 3));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-			skyboxReflectShader.setMat4("model", model);
-			Cube.Draw(skyboxReflectShader);
-		}
-
-		// skybox
+		// draw skybox
 		glDepthFunc(GL_EQUAL);
 		skyboxShader.use();
-		//view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
 		glBindVertexArray(skyboxVAO);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextures);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS);
 
+		// anti-aliasing
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
 		glBlitFramebuffer(0, 0, 800, 600, 0, 0, 800, 600, GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -359,6 +374,7 @@ int main() {
 	//glDeleteProgram(lightCubeShader.ID);
 	glDeleteProgram(shaderSingleColor.ID);
 	glDeleteProgram(screenShader.ID);
+	glDeleteProgram(simpleDepthShader.ID);
 
 	glDeleteVertexArrays(1, &quadVAO);
 	glDeleteBuffers(1, &quadVBO);
@@ -369,6 +385,42 @@ int main() {
 	glfwTerminate();
 
 	return 0;
+}
+
+void renderScene(Shader shader, Model Modelo, Model Tower, Model Cube, glm::vec3 lightPos) {
+	glm::mat4 model = glm::mat4(1.0f);
+
+	//plane
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(4.0f, 1.0f, 4.0f));
+	shader.setMat4("model", model);
+	Modelo.Draw(shader);
+
+	//tower
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-2.0f, -1.0f, -4.0f));
+	model = glm::scale(model, glm::vec3(0.75f));
+	shader.setMat4("model", model);
+	Tower.Draw(shader);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.5f));
+	shader.setMat4("model", model);
+	Cube.Draw(shader);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, -0.7f, 4.0f));
+	model = glm::scale(model, glm::vec3(0.5f));
+	shader.setMat4("model", model);
+	Cube.Draw(shader);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, lightPos);
+	model = glm::scale(model, glm::vec3(0.25f));
+	shader.setMat4("model", model);
+	Cube.Draw(shader);
 }
 
 void proccesInput(GLFWwindow* window) {
@@ -429,7 +481,7 @@ void setupLights(Shader lightShader) {
 	// directional light
 	lightShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
 	lightShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-	lightShader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+	lightShader.setVec3("dirLight.diffuse", 0.6f, 0.6f, 0.6f);
 	lightShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
 	glm::vec3 pointLightColor = glm::vec3(0.05f, 0.05f, 0.05f);

@@ -36,6 +36,9 @@ void main() {
 	for(int i = 0; i < 9; i++){
 		col += sampleTex[i] * kernel[i];
 	}
+	//float gamma = 1.2;
+	//col = pow(col, vec3(1.0 / gamma));
 
+	//float depthValue = texture(screenTexture, TexCoords).r;
 	FragColor = vec4(col, 1.0);
 }
