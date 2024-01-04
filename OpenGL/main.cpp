@@ -1,3 +1,7 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -16,6 +20,7 @@
 
 void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void proccesInput(GLFWwindow* window);
 void setupLights(Shader lightingshader);
@@ -49,6 +54,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = 400;
 float lastY = 300;
 bool firstMouse = true;
+bool moveCamera = true;
 
 int main() {
 
@@ -73,6 +79,7 @@ int main() {
 	// Set camera mouse input callback
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetKeyCallback(window, key_callback);
 
 	// Scroll callback
 	glfwSetScrollCallback(window, scroll_callback);
@@ -289,6 +296,13 @@ int main() {
 	lightShader.use();
 	lightShader.setInt("shadowMap", 1);
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
 	Model Modelo("models/plano/plano.obj");
 	Model Cube("models/cube/cube.obj");
 	Model Tower("models/tower/wooden watch tower2.obj");
@@ -301,11 +315,18 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		proccesInput(window);
-
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// imgui
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		if (!io.WantCaptureMouse) {
+			proccesInput(window);
+		}
 
 		// depth shadow map rendering
 		const auto lightMatrices = getLightSpaceMatrices();
@@ -397,10 +418,21 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, screenTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		ImGui::Begin("My name is window, ImGui window");
+		ImGui::Text("Hello there adventurer!");
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glDeleteProgram(lightShader.ID);
 	//glDeleteProgram(lightCubeShader.ID);
@@ -447,10 +479,6 @@ void renderScene(Shader shader, Model Modelo, Model Tower, Model Cube) {
 }
 
 void proccesInput(GLFWwindow* window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-
 	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		std::cout << "Polygon Mode On" << std::endl;
@@ -489,7 +517,27 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	if (moveCamera) {
+		camera.ProcessMouseMovement(xoffset, yoffset);
+	}
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (action == GLFW_RELEASE) return; //only handle press events
+	if (key == GLFW_KEY_ESCAPE) {
+		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			moveCamera = false;
+		}
+		else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			moveCamera = true;
+		}
+	}
+	if (key == GLFW_KEY_X) {
+		glfwSetWindowShouldClose(window, true);
+	}
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
