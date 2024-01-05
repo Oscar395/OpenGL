@@ -5,6 +5,9 @@ in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
 
+uniform bool gammaCorrection;
+uniform float gamma;
+
 const float offset = 1.0 / 300.0;
 
 void main() {
@@ -36,8 +39,11 @@ void main() {
 	for(int i = 0; i < 9; i++){
 		col += sampleTex[i] * kernel[i];
 	}
-	//float gamma = 1.2;
-	//col = pow(col, vec3(1.0 / gamma));
+
+	if(gammaCorrection) {
+		col = pow(col, vec3(1.0 / gamma));
+	}
+	//float gamma = 2.2;
 
 	//float depthValue = texture(screenTexture, TexCoords).r;
 	FragColor = vec4(col, 1.0);

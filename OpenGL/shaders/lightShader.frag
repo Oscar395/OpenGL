@@ -70,6 +70,7 @@ uniform int cascadeCount;
 uniform mat4 view;
 uniform float near;
 uniform float far;
+uniform bool shadows;
 
 uniform float cascadePlaneDistances[16];
 
@@ -190,8 +191,10 @@ vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec4 diffuse  = vec4(light.diffuse.rgb, 1.0)  * diff * texture(material.texture_diffuse1, fs_in.TexCoords);
     vec4 specular = vec4(light.specular.rgb, 1.0) * spec * texture(material.texture_specular1, fs_in.TexCoords);
 
-    return (ambient + (1.0 - shadow) * (diffuse + specular));
-    //return (ambient + diffuse + specular);
+    if (shadows) {
+        return (ambient + (1.0 - shadow) * (diffuse + specular));
+    }
+    return (ambient + diffuse + specular);
 }
 
 vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {

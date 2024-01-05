@@ -37,7 +37,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 float cameraNearPlane = 0.1f;
-float cameraFarPlane = 100.0f;
+float cameraFarPlane = 500.0f;
 
 // framebuffer size
 int fb_width;
@@ -46,7 +46,7 @@ int fb_height;
 std::vector<float> shadowCascadeLevels{ cameraFarPlane / 50.0f, cameraFarPlane / 25.0f, cameraFarPlane / 10.0f, cameraFarPlane / 2.0f };
 
 // lighting info
-const glm::vec3 lightDir = glm::normalize(glm::vec3(40.0f, 50.0f, 20.0f));
+glm::vec3 lightDir = glm::normalize(glm::vec3(40.0f, 50.0f, 20.0f));
 constexpr unsigned int depthMapResolution = 1024;
 
 //Camera
@@ -105,7 +105,7 @@ int main() {
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	Shader lightShader("shaders/lightShader.vert", "shaders/lightShader.frag");
-	Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
+	//Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
 	Shader screenShader("shaders/framebuffers_screen.vert", "shaders/framebuffers_screen.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 	Shader skyboxReflectShader("shaders/skybox_reflect.vert", "shaders/skybox_reflect.frag");
@@ -309,9 +309,13 @@ int main() {
 	//Model Grass("models/grass/grass.obj");
 	//Model Sponza("models/Sponza-master/sponza.obj");
 
+	bool shadows = true;
+	bool gammaCorrection = true;
+	float gammaValue = 2.2f;
+
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = (float) glfwGetTime();
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -324,29 +328,31 @@ int main() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		io.WantCaptureMouse = !moveCamera;
+
 		if (!io.WantCaptureMouse) {
 			proccesInput(window);
 		}
 
 		// depth shadow map rendering
-		const auto lightMatrices = getLightSpaceMatrices();
-		glBindBuffer(GL_UNIFORM_BUFFER, matricesUBO);
-		for (size_t i = 0; i < lightMatrices.size(); ++i)
-		{
-			glBufferSubData(GL_UNIFORM_BUFFER, i * sizeof(glm::mat4x4), sizeof(glm::mat4x4), &lightMatrices[i]);
+		if (shadows) {
+			const auto lightMatrices = getLightSpaceMatrices();
+			glBindBuffer(GL_UNIFORM_BUFFER, matricesUBO);
+			for (size_t i = 0; i < lightMatrices.size(); ++i)
+			{
+				glBufferSubData(GL_UNIFORM_BUFFER, i * sizeof(glm::mat4x4), sizeof(glm::mat4x4), &lightMatrices[i]);
+			}
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+			simpleDepthShader.use();
+
+			glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);
+			glViewport(0, 0, depthMapResolution, depthMapResolution);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glCullFace(GL_FRONT);
+			renderScene(simpleDepthShader, Modelo, Tower, Cube);
+			glCullFace(GL_BACK);
 		}
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-		simpleDepthShader.use();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);
-		glViewport(0, 0, depthMapResolution, depthMapResolution);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		//glDisable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-		renderScene(simpleDepthShader, Modelo, Tower, Cube);
-		glCullFace(GL_BACK);
-		//glEnable(GL_CULL_FACE);
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		//glViewport(0, 0, 800, 600);
@@ -373,6 +379,7 @@ int main() {
 		// view/projection transformations
 		lightShader.setVec3("viewPos", camera.Position);
 		lightShader.setFloat("time", TIME);
+		lightShader.setBool("shadows", shadows);
 		lightShader.setInt("cascadeCount", (int)shadowCascadeLevels.size());
 		for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
 		{
@@ -404,7 +411,7 @@ int main() {
 		// anti-aliasing
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
-		glBlitFramebuffer(0, 0, 800, 600, 0, 0, 800, 600, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, fb_width, fb_height, 0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 		// draw screen quad texture
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -413,13 +420,27 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		screenShader.use();
+		screenShader.setBool("gammaCorrection", gammaCorrection);
+		screenShader.setFloat("gamma", gammaValue);
 		glBindVertexArray(quadVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, screenTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		ImGui::Begin("My name is window, ImGui window");
-		ImGui::Text("Hello there adventurer!");
+		ImGui::Begin("ImGui window");
+		ImGui::Text("Shadow settings: ");
+		ImGui::Checkbox("Enable shadows", &shadows);
+		float lightdir[3] = {lightDir.x, lightDir.y, lightDir.z};
+		//ImGui::InputFloat3("Light direction", lightdir);
+		ImGui::SliderFloat3("Light direction", lightdir, -1.0f, 1.0f);
+		lightDir = glm::vec3(lightdir[0], lightdir[1], lightdir[2]);
+		ImGui::Text("Gamma settings: ");
+		ImGui::Checkbox("Gamma correction", &gammaCorrection);
+		ImGui::InputFloat("Gamma Value", &gammaValue);
+		if (ImGui::Button("close program")) {
+			glfwSetWindowShouldClose(window, true);
+		}
+		//ImGui::ShowDemoWindow();
 		ImGui::End();
 
 		ImGui::Render();
@@ -436,7 +457,7 @@ int main() {
 
 	glDeleteProgram(lightShader.ID);
 	//glDeleteProgram(lightCubeShader.ID);
-	glDeleteProgram(shaderSingleColor.ID);
+	//glDeleteProgram(shaderSingleColor.ID);
 	glDeleteProgram(screenShader.ID);
 	glDeleteProgram(simpleDepthShader.ID);
 
