@@ -12,6 +12,7 @@
 class Model {
 public:
 	Model(const char* path);
+	void addNormalTexture(const char* path);
 	void Draw(Shader& shader);
 
 private:

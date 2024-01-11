@@ -2,5 +2,7 @@
 out vec4 FragColor;
 
 void main(){
-	FragColor = vec4(0.04, 0.28, 0.26, 1.0);
+    vec3 outColor = vec3(1.0f, 1.0f, 1.0f);
+	outColor = pow(outColor.rgb, vec3(1.0 / 0.6));
+	FragColor = vec4(outColor, 1.0);
 }

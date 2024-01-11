@@ -9,6 +9,7 @@ layout (std140) uniform LightSpaceMatrices
 struct Material {
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
+    sampler2D texture_normal1;
     sampler2D emission;
     float shininess;
 };
@@ -62,6 +63,8 @@ uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 
 uniform sampler2DArray shadowMap;
+uniform sampler2D normalMap;
+uniform bool useNormalMap;
 
 uniform float time;
 uniform vec3 lightDir;
@@ -148,7 +151,14 @@ float LinearizeDepth(float depth){
 
 void main() {
 
+
     vec3 norm = normalize(fs_in.Normal);
+
+    if (useNormalMap) {
+        norm = texture(normalMap, fs_in.TexCoords).rgb;
+        norm = normalize(norm * 2.0 - 1.0);
+    }
+
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
 
     float shadow = ShadowCalculation(fs_in.FragPos);

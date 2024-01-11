@@ -1,6 +1,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "scene.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -25,7 +26,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void proccesInput(GLFWwindow* window);
 void setupLights(Shader lightingshader);
 unsigned int loadCubemap(vector<std::string> faces);
-void renderScene(Shader shader, Model Modelo, Model Tower, Model Cube);
 std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
 glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane);
 std::vector<glm::mat4> getLightSpaceMatrices();
@@ -212,14 +212,14 @@ int main() {
 	unsigned int textureColorbufferMultiSampled;
 	glGenTextures(1, &textureColorbufferMultiSampled);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, 800, 600, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, fb_width, fb_height, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled, 0);
 
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, 800, 600);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, fb_width, fb_height);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
@@ -235,7 +235,7 @@ int main() {
 	unsigned int screenTexture;
 	glGenTextures(1, &screenTexture);
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fb_width, fb_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);	// we only need a color buffer
@@ -303,14 +303,23 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	Model Modelo("models/plano/plano.obj");
+	Model Modelo("models/plano/plane.obj");
 	Model Cube("models/cube/cube.obj");
 	Model Tower("models/tower/wooden watch tower2.obj");
+	Model Wall("models/wall/wall.obj");
+	Wall.addNormalTexture("brickwall_normal.jpg");
 	//Model Grass("models/grass/grass.obj");
-	//Model Sponza("models/Sponza-master/sponza.obj");
+
+	Scene Escena;
+
+	Escena.addObject(Modelo, glm::vec3(0.0f, -1.0f, 0.0f));
+	Escena.addObject(Cube, glm::vec3(0.0f, 0.0f, 0.0f));
+	Escena.addObject(Cube, glm::vec3(0.0f, -0.7f, 4.0f));
+	Escena.addObject(Tower, glm::vec3(-2.0f, -1.7f, -4.0f));
+	Escena.addObject(Wall, glm::vec3(-5.0f, 1.0f, 4.0f));
 
 	bool shadows = true;
-	bool gammaCorrection = true;
+	bool gammaCorrection = false;
 	float gammaValue = 2.2f;
 
 	while (!glfwWindowShouldClose(window))
@@ -350,13 +359,13 @@ int main() {
 			glViewport(0, 0, depthMapResolution, depthMapResolution);
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_FRONT);
-			renderScene(simpleDepthShader, Modelo, Tower, Cube);
+			Escena.render(simpleDepthShader);
 			glCullFace(GL_BACK);
 		}
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		//glViewport(0, 0, 800, 600);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, fb_width, fb_height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// render normal
 		// ---------------------------------------
@@ -390,12 +399,7 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, lightDepthMaps);
-		renderScene(lightShader, Modelo, Tower, Cube);
-		//glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
-		//lightShader.setMat4("model", model);
-		//Sponza.Draw(lightShader);
+		Escena.render(lightShader);
 
 		// draw skybox
 		glDepthFunc(GL_EQUAL);
@@ -427,16 +431,17 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, screenTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		glDisable(GL_FRAMEBUFFER_SRGB);
 		ImGui::Begin("ImGui window");
 		ImGui::Text("Shadow settings: ");
 		ImGui::Checkbox("Enable shadows", &shadows);
-		float lightdir[3] = {lightDir.x, lightDir.y, lightDir.z};
+		float lightdir[3] = { lightDir.x, lightDir.y, lightDir.z };
 		//ImGui::InputFloat3("Light direction", lightdir);
 		ImGui::SliderFloat3("Light direction", lightdir, -1.0f, 1.0f);
 		lightDir = glm::vec3(lightdir[0], lightdir[1], lightdir[2]);
 		ImGui::Text("Gamma settings: ");
 		ImGui::Checkbox("Gamma correction", &gammaCorrection);
-		ImGui::InputFloat("Gamma Value", &gammaValue);
+		ImGui::SliderFloat("Gamma Value", &gammaValue, 0.0f, 2.2f);
 		if (ImGui::Button("close program")) {
 			glfwSetWindowShouldClose(window, true);
 		}
@@ -445,6 +450,7 @@ int main() {
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		glfwSwapBuffers(window);
 
@@ -470,33 +476,6 @@ int main() {
 	glfwTerminate();
 
 	return 0;
-}
-
-void renderScene(Shader shader, Model Modelo, Model Tower, Model Cube) {
-	glm::mat4 model = glm::mat4(1.0f);
-
-	//plane
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-	model = glm::scale(model, glm::vec3(4.0f, 1.0f, 4.0f));
-	shader.setMat4("model", model);
-	Modelo.Draw(shader);
-
-	//tower
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-2.0f, -1.7f, -4.0f));
-	shader.setMat4("model", model);
-	Tower.Draw(shader);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	shader.setMat4("model", model);
-	Cube.Draw(shader);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, -0.5f, 4.0f));
-	shader.setMat4("model", model);
-	Cube.Draw(shader);
 }
 
 void proccesInput(GLFWwindow* window) {

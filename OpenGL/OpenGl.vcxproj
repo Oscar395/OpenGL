@@ -148,6 +148,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\assimp\lib\assimp-vc140-mt.lib" />
@@ -490,6 +491,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="scene.h" />
     <ClInclude Include="shader_s.h" />
   </ItemGroup>
   <ItemGroup>
