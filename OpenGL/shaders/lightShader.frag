@@ -53,6 +53,7 @@ in VS_OUT {
     vec3 Normal;
     vec3 FragPos;
     vec2 TexCoords;
+    mat3 TBN;
 } fs_in;
 
 uniform Material material;
@@ -63,8 +64,7 @@ uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 
 uniform sampler2DArray shadowMap;
-uniform sampler2D normalMap;
-uniform bool useNormalMap;
+uniform bool usingNormalMap;
 
 uniform float time;
 uniform vec3 lightDir;
@@ -81,7 +81,7 @@ vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow);
 vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow);
 vec4 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
-float ShadowCalculation(vec3 fragPosWorldSpace) {
+float ShadowCalculation(vec3 fragPosWorldSpace, vec3 normal) {
      // select cascade layer
     vec4 fragPosViewSpace = view * vec4(fragPosWorldSpace, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
@@ -115,17 +115,17 @@ float ShadowCalculation(vec3 fragPosWorldSpace) {
         return 0.0;
     }
     // calculate bias (based on depth map resolution and slope)
-    vec3 normal = normalize(fs_in.Normal);
-    //float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    const float biasModifier = 0.5f;
-    //if (layer == cascadeCount)
-    //{
-    //    bias *= 1 / (far * biasModifier);
-    //}
-    //else
-    //{
-    //    bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
-    //}
+    //vec3 normal = normalize(fs_in.Normal);
+//    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+//    const float biasModifier = 0.5f;
+//    if (layer == cascadeCount)
+//    {
+//        bias *= 1 / (far * biasModifier);
+//    }
+//    else
+//    {
+//        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
+//    }
 
     // PCF
     float shadow = 0.0;
@@ -135,8 +135,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace) {
         for(int y = -1; y <= 1; ++y)
         {
             float pcfDepth = texture(shadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            //shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;  
-            shadow += currentDepth > pcfDepth ? 1.0 : 0.0;  
+            // shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;  
+            shadow += currentDepth > pcfDepth ? 1.0 : 0.0; 
         }    
     }
     shadow /= 9.0;
@@ -151,19 +151,20 @@ float LinearizeDepth(float depth){
 
 void main() {
 
-
-    vec3 norm = normalize(fs_in.Normal);
-
-    if (useNormalMap) {
-        norm = texture(normalMap, fs_in.TexCoords).rgb;
-        norm = normalize(norm * 2.0 - 1.0);
-    }
+    vec3 normal = normalize(fs_in.Normal);
 
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
 
-    float shadow = ShadowCalculation(fs_in.FragPos);
+    if(usingNormalMap) {
+        normal = texture(material.texture_normal1, fs_in.TexCoords).rgb;
+        normal = normalize(normal * 2.0 - 1.0);
+    
+        viewDir = fs_in.TBN * normalize(viewPos - fs_in.FragPos);
+    }
 
-    vec4 result = CalcDirLight(dirLight, norm, viewDir, shadow);
+    float shadow = ShadowCalculation(fs_in.FragPos, normal);
+
+    vec4 result = CalcDirLight(dirLight, normal, viewDir, shadow);
 
     //for(int i = 0; i < NR_POINT_LIGHTS; i++){
         //result += CalcPointLight(pointLights[i], norm, fs_in.FragPos, viewDir, shadow);
@@ -185,7 +186,8 @@ void main() {
 
 
 vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow) {
-    //vec3 lightDir = normalize(-lightDir);
+    //vec3 lightDir = fs_in.TBN * normalize(lightDir);
+
     vec3 halfWayDir = normalize(lightDir + viewDir);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
@@ -208,7 +210,7 @@ vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow) {
 }
 
 vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 lightDir = fs_in.TBN * normalize(light.position - fragPos);
     vec3 halfWayDir = normalize(lightDir + viewDir);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
@@ -237,7 +239,7 @@ vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, f
 }
 
 vec4 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 lightDir = fs_in.TBN * normalize(light.position - fragPos);
     vec3 halfWayDir = normalize(lightDir + viewDir);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);

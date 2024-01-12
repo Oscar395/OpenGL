@@ -59,13 +59,15 @@ void Mesh::Draw(Shader& shader) {
 		}
 		else if (name == "texture_normal") {
 			number = std::to_string(normalNr++);
+			usingNormalMap = true;
 		}
 
 		shader.setInt(("material." + name + number).c_str(), i);
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
-	if (useNormalMap) {
+	shader.setBool("usingNormalMap", usingNormalMap);
+	/*if (useNormalMap) {
 		glActiveTexture(GL_TEXTURE0 + textures.size() + 1);
 
 		shader.setBool("useNormalMap", true);
@@ -75,7 +77,7 @@ void Mesh::Draw(Shader& shader) {
 	else
 	{
 		shader.setBool("useNormalMap", false);
-	}
+	}*/
 
 	// draw mesh
 	glBindVertexArray(VAO);

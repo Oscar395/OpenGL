@@ -33,8 +33,8 @@ public:
 	vector<Vertex> vertices;
 	vector<unsigned int> indices;
 	vector<Texture> textures;
-	unsigned int normalMap;
-	bool useNormalMap = false;
+	// unsigned int normalMap;
+	bool usingNormalMap = false;
 
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
 	void Draw(Shader &shader);

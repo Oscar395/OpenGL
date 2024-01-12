@@ -7,13 +7,13 @@ Model::Model(const char* path) {
 	loadModel(path);
 }
 
-void Model::addNormalTexture(const char* path) {
-	for (int i = 0; i < meshes.size(); i++)
-	{
-		meshes[i].normalMap = TextureFromFile(path, directory);
-		meshes[i].useNormalMap = true;
-	}
-}
+//void Model::addNormalTexture(const char* path) {
+//	for (int i = 0; i < meshes.size(); i++)
+//	{
+//		meshes[i].normalMap = TextureFromFile(path, directory);
+//		meshes[i].useNormalMap = true;
+//	}
+//}
 
 void Model::Draw(Shader &shader) {
 	for (unsigned int i = 0; i < meshes.size(); i++) {
@@ -23,7 +23,7 @@ void Model::Draw(Shader &shader) {
 
 void Model::loadModel(string path) {
 	Assimp::Importer import;
-	const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		cout << "ERRO::ASSIMP::" << import.GetErrorString() << endl;
@@ -60,16 +60,29 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		vector.z = mesh->mVertices[i].z;
 		vertex.Position = vector;
 
-		vector.x = mesh->mNormals[i].x;
-		vector.y = mesh->mNormals[i].y;
-		vector.z = mesh->mNormals[i].z;
-		vertex.Normal = vector;
+		if (mesh->HasNormals()) {
+			vector.x = mesh->mNormals[i].x;
+			vector.y = mesh->mNormals[i].y;
+			vector.z = mesh->mNormals[i].z;
+			vertex.Normal = vector;
+		}
 
 		if (mesh->mTextureCoords[0]) {
 			glm::vec2 vec;
 			vec.x = mesh->mTextureCoords[0][i].x;
 			vec.y = mesh->mTextureCoords[0][i].y;
 			vertex.TexCoords = vec;
+
+			// tangent
+			vector.x = mesh->mTangents[i].x;
+			vector.y = mesh->mTangents[i].y;
+			vector.z = mesh->mTangents[i].z;
+			vertex.Tangent = vector;
+			// bitangent
+			vector.x = mesh->mBitangents[i].x;
+			vector.y = mesh->mBitangents[i].y;
+			vector.z = mesh->mBitangents[i].z;
+			vertex.Bitangent = vector;
 		}
 		else
 		{
@@ -93,6 +106,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 
 		vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+		vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 	}
 
 	return Mesh(vertices, indices, textures);

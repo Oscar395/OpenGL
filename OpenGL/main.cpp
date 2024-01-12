@@ -307,7 +307,7 @@ int main() {
 	Model Cube("models/cube/cube.obj");
 	Model Tower("models/tower/wooden watch tower2.obj");
 	Model Wall("models/wall/wall.obj");
-	Wall.addNormalTexture("brickwall_normal.jpg");
+	//Wall.addNormalTexture("brickwall_normal.jpg");
 	//Model Grass("models/grass/grass.obj");
 
 	Scene Escena;
@@ -322,11 +322,26 @@ int main() {
 	bool gammaCorrection = false;
 	float gammaValue = 2.2f;
 
+	double lastTime = glfwGetTime();
+	int nbFrames = 0;
+	int displayedFrames = 0;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		double currentTime = glfwGetTime();
+		nbFrames++;
+		if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
+			// printf and reset timer
+			//printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+			//printf("%f fps\n", double(nbFrames));
+			displayedFrames = nbFrames;
+			nbFrames = 0;
+			lastTime += 1.0;
+		}
 
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -359,7 +374,9 @@ int main() {
 			glViewport(0, 0, depthMapResolution, depthMapResolution);
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_FRONT);
+			//glDisable(GL_CULL_FACE);
 			Escena.render(simpleDepthShader);
+			//glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -375,7 +392,7 @@ int main() {
 		glViewport(0, 0, fb_width, fb_height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float TIME = (sin(currentFrame) / 2.0f) + 0.05f;
+		float TIME = (sin(currentTime) / 2.0f) + 0.05f;
 
 		lightShader.use();
 		const glm::mat4 projection = glm::perspective(camera.Zoom, (float)fb_width / (float)fb_height, cameraNearPlane, cameraFarPlane);
@@ -442,6 +459,7 @@ int main() {
 		ImGui::Text("Gamma settings: ");
 		ImGui::Checkbox("Gamma correction", &gammaCorrection);
 		ImGui::SliderFloat("Gamma Value", &gammaValue, 0.0f, 2.2f);
+		ImGui::Text("%d FPS", displayedFrames);
 		if (ImGui::Button("close program")) {
 			glfwSetWindowShouldClose(window, true);
 		}
