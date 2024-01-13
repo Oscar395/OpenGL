@@ -321,6 +321,7 @@ int main() {
 	bool shadows = true;
 	bool gammaCorrection = false;
 	float gammaValue = 2.2f;
+	float height_scale = 0.1f;
 
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
@@ -373,11 +374,11 @@ int main() {
 			glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);
 			glViewport(0, 0, depthMapResolution, depthMapResolution);
 			glClear(GL_DEPTH_BUFFER_BIT);
-			glCullFace(GL_FRONT);
+			//glCullFace(GL_FRONT);
 			//glDisable(GL_CULL_FACE);
 			Escena.render(simpleDepthShader);
 			//glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
+			//glCullFace(GL_BACK);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -405,8 +406,10 @@ int main() {
 		// view/projection transformations
 		lightShader.setVec3("viewPos", camera.Position);
 		lightShader.setFloat("time", TIME);
+		lightShader.setFloat("height_scale", height_scale);
 		lightShader.setBool("shadows", shadows);
 		lightShader.setInt("cascadeCount", (int)shadowCascadeLevels.size());
+		lightShader.setFloat("far", cameraFarPlane);
 		for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
 		{
 			lightShader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels[i]);
@@ -459,10 +462,12 @@ int main() {
 		ImGui::Text("Gamma settings: ");
 		ImGui::Checkbox("Gamma correction", &gammaCorrection);
 		ImGui::SliderFloat("Gamma Value", &gammaValue, 0.0f, 2.2f);
-		ImGui::Text("%d FPS", displayedFrames);
+		ImGui::Text("Parallax mapping: ");
+		ImGui::SliderFloat("height scale", &height_scale, 0.0f, 1.0f);
 		if (ImGui::Button("close program")) {
 			glfwSetWindowShouldClose(window, true);
 		}
+		ImGui::Text("%d FPS", displayedFrames);
 		//ImGui::ShowDemoWindow();
 		ImGui::End();
 

@@ -46,6 +46,7 @@ void Mesh::Draw(Shader& shader) {
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
 	unsigned int normalNr = 1;
+	unsigned int heightNr = 1;
 	for (unsigned int i = 0; i < textures.size(); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
 
@@ -61,12 +62,19 @@ void Mesh::Draw(Shader& shader) {
 			number = std::to_string(normalNr++);
 			usingNormalMap = true;
 		}
+		else if (name == "texture_height") {
+			number = std::to_string(heightNr++);
+			usingHeightMap = true;
+			//std::cout << "displacement set" << std::endl;
+		}
 
 		shader.setInt(("material." + name + number).c_str(), i);
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
+	// setting the mesh materials state
 	shader.setBool("usingNormalMap", usingNormalMap);
+	shader.setBool("usingHeightMap", usingHeightMap);
 	/*if (useNormalMap) {
 		glActiveTexture(GL_TEXTURE0 + textures.size() + 1);
 

@@ -10,6 +10,7 @@ struct Material {
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
     sampler2D texture_normal1;
+    sampler2D texture_height1;
     sampler2D emission;
     float shininess;
 };
@@ -53,6 +54,8 @@ in VS_OUT {
     vec3 Normal;
     vec3 FragPos;
     vec2 TexCoords;
+    vec3 TangentViewPos;
+    vec3 TangentFragPos;
     mat3 TBN;
 } fs_in;
 
@@ -65,15 +68,16 @@ uniform SpotLight spotLight;
 
 uniform sampler2DArray shadowMap;
 uniform bool usingNormalMap;
+uniform bool usingHeightMap;
 
 uniform float time;
-uniform vec3 lightDir;
 uniform vec3 viewPos;
 uniform int cascadeCount;
 uniform mat4 view;
 uniform float near;
 uniform float far;
 uniform bool shadows;
+uniform float height_scale;
 
 uniform float cascadePlaneDistances[16];
 
@@ -115,17 +119,17 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 normal) {
         return 0.0;
     }
     // calculate bias (based on depth map resolution and slope)
-    //vec3 normal = normalize(fs_in.Normal);
-//    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-//    const float biasModifier = 0.5f;
-//    if (layer == cascadeCount)
-//    {
-//        bias *= 1 / (far * biasModifier);
-//    }
-//    else
-//    {
-//        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
-//    }
+
+    float bias = max(0.05 * (1.0 - dot(normal, dirLight.direction)), 0.005);
+    const float biasModifier = 0.5f;
+    if (layer == cascadeCount)
+    {
+        bias *= 1 / (far * biasModifier);
+    }
+    else
+    {
+        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
+    }
 
     // PCF
     float shadow = 0.0;
@@ -135,8 +139,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 normal) {
         for(int y = -1; y <= 1; ++y)
         {
             float pcfDepth = texture(shadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            // shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;  
-            shadow += currentDepth > pcfDepth ? 1.0 : 0.0; 
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;  
+            //shadow += currentDepth > pcfDepth ? 1.0 : 0.0; 
         }    
     }
     shadow /= 9.0;
@@ -149,6 +153,13 @@ float LinearizeDepth(float depth){
     return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
+vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
+{ 
+    float height =  texture(material.texture_height1, texCoords).r;    
+    vec2 p = viewDir.xy / viewDir.z * (height * height_scale);
+    return texCoords - p;
+}
+
 void main() {
 
     vec3 normal = normalize(fs_in.Normal);
@@ -159,7 +170,7 @@ void main() {
         normal = texture(material.texture_normal1, fs_in.TexCoords).rgb;
         normal = normalize(normal * 2.0 - 1.0);
     
-        viewDir = fs_in.TBN * normalize(viewPos - fs_in.FragPos);
+        viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
     }
 
     float shadow = ShadowCalculation(fs_in.FragPos, normal);
@@ -186,7 +197,17 @@ void main() {
 
 
 vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow) {
-    //vec3 lightDir = fs_in.TBN * normalize(lightDir);
+    vec2 texCoords = fs_in.TexCoords;
+    vec3 lightDir = light.direction;
+
+    if(usingHeightMap) {
+        viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
+        texCoords = ParallaxMapping(fs_in.TexCoords,  viewDir);
+        //if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
+            //discard;
+    }
+
+    // vec3 lightDir = fs_in.TBN * normalize(light.direction);
 
     vec3 halfWayDir = normalize(lightDir + viewDir);
     // diffuse shading
@@ -199,9 +220,9 @@ vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow) {
         spec = 0.0;
     }
     // combine results
-    vec4 ambient  = vec4(light.ambient.rgb, 1.0)  * texture(material.texture_diffuse1, fs_in.TexCoords);
-    vec4 diffuse  = vec4(light.diffuse.rgb, 1.0)  * diff * texture(material.texture_diffuse1, fs_in.TexCoords);
-    vec4 specular = vec4(light.specular.rgb, 1.0) * spec * texture(material.texture_specular1, fs_in.TexCoords);
+    vec4 ambient  = vec4(light.ambient.rgb, 1.0)  * texture(material.texture_diffuse1, texCoords);
+    vec4 diffuse  = vec4(light.diffuse.rgb, 1.0)  * diff * texture(material.texture_diffuse1, texCoords);
+    vec4 specular = vec4(light.specular.rgb, 1.0) * spec * texture(material.texture_specular1, texCoords);
 
     if (shadows) {
         return (ambient + (1.0 - shadow) * (diffuse + specular));
@@ -210,6 +231,15 @@ vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow) {
 }
 
 vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {
+    vec2 texCoords = fs_in.TexCoords;
+
+    if(usingHeightMap) {
+        viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
+        texCoords = ParallaxMapping(fs_in.TexCoords,  viewDir);
+        if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
+            discard;
+    }
+
     vec3 lightDir = fs_in.TBN * normalize(light.position - fragPos);
     vec3 halfWayDir = normalize(lightDir + viewDir);
     // diffuse shading
@@ -228,9 +258,9 @@ vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, f
   			     light.quadratic * (distance * distance));
 
     // combine results
-    vec4 ambient  = vec4(light.ambient.xyz, 1.0)  * texture(material.texture_diffuse1, fs_in.TexCoords);
-    vec4 diffuse  = vec4(light.diffuse.xyz, 1.0)  * diff * texture(material.texture_diffuse1, fs_in.TexCoords);
-    vec4 specular = vec4(light.specular.xyz, 1.0) * spec * texture(material.texture_specular1, fs_in.TexCoords);
+    vec4 ambient  = vec4(light.ambient.xyz, 1.0)  * texture(material.texture_diffuse1, texCoords);
+    vec4 diffuse  = vec4(light.diffuse.xyz, 1.0)  * diff * texture(material.texture_diffuse1, texCoords);
+    vec4 specular = vec4(light.specular.xyz, 1.0) * spec * texture(material.texture_specular1, texCoords);
 
     ambient  *= attenuation;
     diffuse  *= attenuation;

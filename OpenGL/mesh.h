@@ -35,6 +35,7 @@ public:
 	vector<Texture> textures;
 	// unsigned int normalMap;
 	bool usingNormalMap = false;
+	bool usingHeightMap = false;
 
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
 	void Draw(Shader &shader);
