@@ -60,6 +60,9 @@
     <ClCompile Include="scene.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="FrameBuffer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />
@@ -1080,10 +1083,11 @@
     <ClInclude Include="scene.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="FrameBuffer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertexShader.vert" />
-    <None Include="fragmentShader.frag" />
     <None Include="dependencies\include\glm\gtx\wrap.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>

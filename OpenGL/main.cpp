@@ -2,6 +2,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "scene.h"
+#include "FrameBuffer.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -65,8 +66,16 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL", NULL, NULL);
+
+	//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+	//glfwSetWindowMonitor(window, nullptr, 0, 0, mode->width, mode->height, mode->refreshRate);
+
+	//glfwSetWindowMonitor(window, nullptr, 0, 0, SCR_WIDTH, SCR_HEIGHT, 60);
 
 	if (!window) {
 		std::cout << "Failed to create the window" << std::endl;
@@ -205,48 +214,50 @@ int main() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	// MSAA Framebuffer
-	unsigned int framebuffer;
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	//unsigned int framebuffer;
+	//glGenFramebuffers(1, &framebuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	unsigned int textureColorbufferMultiSampled;
-	glGenTextures(1, &textureColorbufferMultiSampled);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, fb_width, fb_height, GL_TRUE);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled, 0);
+	//unsigned int textureColorbufferMultiSampled;
+	//glGenTextures(1, &textureColorbufferMultiSampled);
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled);
+	//glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, fb_width, fb_height, GL_TRUE);
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorbufferMultiSampled, 0);
 
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, fb_width, fb_height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	//unsigned int rbo;
+	//glGenRenderbuffers(1, &rbo);
+	//glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	//glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, fb_width, fb_height);
+	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	//	std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	////glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//// configure second post-processing framebuffer
+	//unsigned int intermediateFBO;
+	//glGenFramebuffers(1, &intermediateFBO);
+	//glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+	//// create a color attachment texture
+	//unsigned int screenTexture;
+	//glGenTextures(1, &screenTexture);
+	//glBindTexture(GL_TEXTURE_2D, screenTexture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fb_width, fb_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);	// we only need a color buffer
+
+	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	//	std::cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!" << std::endl;
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// configure second post-processing framebuffer
-	unsigned int intermediateFBO;
-	glGenFramebuffers(1, &intermediateFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
-	// create a color attachment texture
-	unsigned int screenTexture;
-	glGenTextures(1, &screenTexture);
-	glBindTexture(GL_TEXTURE_2D, screenTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fb_width, fb_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);	// we only need a color buffer
+	//screenShader.use();
+	//screenShader.setInt("screenTexture", 0);
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	FrameBuffer sceneBuffer((float)fb_width, (float)fb_height);
 
-	screenShader.use();
-	screenShader.setInt("screenTexture", 0);
-	
 	// cascade shadow map
 	unsigned int lightFBO;
 	glGenFramebuffers(1, &lightFBO);
@@ -388,7 +399,8 @@ int main() {
 		// render normal
 		// ---------------------------------------
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		sceneBuffer.Bind();
 
 		glViewport(0, 0, fb_width, fb_height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -433,23 +445,55 @@ int main() {
 		glDepthFunc(GL_LESS);
 
 		// anti-aliasing
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+		/*glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
-		glBlitFramebuffer(0, 0, fb_width, fb_height, 0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, fb_width, fb_height, 0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);*/
+
+		sceneBuffer.blitFrameBuffers((float)fb_width, (float)fb_height);
+
+		sceneBuffer.UnBind();
 
 		// draw screen quad texture
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		screenShader.use();
+		/*screenShader.use();
 		screenShader.setBool("gammaCorrection", gammaCorrection);
 		screenShader.setFloat("gamma", gammaValue);
 		glBindVertexArray(quadVAO);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, screenTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindTexture(GL_TEXTURE_2D, sceneBuffer.getFrameTexture());
+		glDrawArrays(GL_TRIANGLES, 0, 6);*/
+		
+		//ImGui::SetNextWindowSize(ImVec2(fb_width, fb_height));
+
+		ImGui::Begin("Scene window"); {
+
+			ImGui::BeginChild("Game Render");
+
+			float width = ImGui::GetContentRegionAvail().x;
+			float height = ImGui::GetContentRegionAvail().y;
+
+			ImVec2 availableSize = ImGui::GetContentRegionAvail();
+
+			if (width != fb_width || height != fb_height) {
+				std::cout << "window rezised" << std::endl;
+				sceneBuffer.rescaleFrameBuffer((float)fb_width, (float)fb_height);
+				fb_width = (int)width;
+				fb_height = (int)height;
+			}
+
+			ImGui::Image(
+				(ImTextureID)sceneBuffer.getFrameTexture(),
+				availableSize,
+				ImVec2(0, 1),
+				ImVec2(1, 0)
+			);
+		}
+		ImGui::EndChild();
+		ImGui::End();
 
 		glDisable(GL_FRAMEBUFFER_SRGB);
 		ImGui::Begin("ImGui window");
@@ -493,8 +537,8 @@ int main() {
 	glDeleteVertexArrays(1, &quadVAO);
 	glDeleteBuffers(1, &quadVBO);
 	glDeleteBuffers(1, &skyboxVAO);
-	glDeleteRenderbuffers(1, &rbo);
-	glDeleteFramebuffers(1, &framebuffer);
+	// glDeleteRenderbuffers(1, &rbo);
+	// glDeleteFramebuffers(1, &framebuffer);
 
 	glfwTerminate();
 
@@ -568,8 +612,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 void frame_buffer_size_callback(GLFWwindow* window, int width, int height) {
+	if (width == 0 || height == 0) {
+		return;
+	}
 	fb_width = width;
 	fb_height = height;
+
 	glViewport(0, 0, width, height);
 }
 
