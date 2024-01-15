@@ -120,16 +120,16 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 normal) {
     }
     // calculate bias (based on depth map resolution and slope)
 
-    float bias = max(0.05 * (1.0 - dot(normal, dirLight.direction)), 0.005);
-    const float biasModifier = 0.5f;
-    if (layer == cascadeCount)
-    {
-        bias *= 1 / (far * biasModifier);
-    }
-    else
-    {
-        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
-    }
+//    float bias = max(0.05 * (1.0 - dot(normal, dirLight.direction)), 0.005);
+//    const float biasModifier = 0.5f;
+//    if (layer == cascadeCount)
+//    {
+//        bias *= 1 / (far * biasModifier);
+//    }
+//    else
+//    {
+//        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
+//    }
 
     // PCF
     float shadow = 0.0;
@@ -139,8 +139,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 normal) {
         for(int y = -1; y <= 1; ++y)
         {
             float pcfDepth = texture(shadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;  
-            //shadow += currentDepth > pcfDepth ? 1.0 : 0.0; 
+            //shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;  
+            shadow += currentDepth > pcfDepth ? 1.0 : 0.0; 
         }    
     }
     shadow /= 9.0;
@@ -173,7 +173,10 @@ void main() {
         viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
     }
 
-    float shadow = ShadowCalculation(fs_in.FragPos, normal);
+    float shadow = 0.0;
+    if (shadows) {
+        shadow = ShadowCalculation(fs_in.FragPos, normal);
+    }
 
     vec4 result = CalcDirLight(dirLight, normal, viewDir, shadow);
 
