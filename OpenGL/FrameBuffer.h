@@ -6,7 +6,7 @@
 
 class FrameBuffer {
 public:
-	FrameBuffer(float width, float height);
+	FrameBuffer(float width, float height, bool multiSample = true);
 	~FrameBuffer();
 	unsigned int getFrameTexture();
 	void rescaleFrameBuffer(float width, float height);
@@ -19,4 +19,5 @@ private:
 	unsigned int rbo;
 	unsigned int textureMultiSampled;
 	unsigned int intermediateFBO;
+	bool multiSampled = true;
 };

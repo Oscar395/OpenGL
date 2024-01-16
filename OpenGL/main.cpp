@@ -214,8 +214,9 @@ int main() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	// MSAA Framebuffer
+	FrameBuffer sceneBuffer((float)fb_width, (float)fb_height, true);
 
-	FrameBuffer sceneBuffer((float)fb_width, (float)fb_height);
+	FrameBuffer postprocesingBuffer((float)fb_width, (float)fb_height, false);
 
 	// cascade shadow map
 	unsigned int lightFBO;
@@ -289,7 +290,7 @@ int main() {
 	Escena.addObject(Wall, glm::vec3(-5.0f, 1.0f, 4.0f));
 
 	bool shadows = true;
-	bool gammaCorrection = false;
+	bool gammaCorrection = true;
 	float gammaValue = 2.2f;
 	float height_scale = 0.1f;
 
@@ -345,11 +346,11 @@ int main() {
 			glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);
 			glViewport(0, 0, depthMapResolution, depthMapResolution);
 			glClear(GL_DEPTH_BUFFER_BIT);
-			//glCullFace(GL_FRONT);
-			glDisable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+			//glDisable(GL_CULL_FACE);
 			Escena.render(simpleDepthShader);
-			glEnable(GL_CULL_FACE);
-			//glCullFace(GL_BACK);
+			//glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -360,6 +361,7 @@ int main() {
 		// ---------------------------------------
 
 		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
 		sceneBuffer.Bind();
 
 		glViewport(0, 0, fb_width, fb_height);
@@ -416,21 +418,25 @@ int main() {
 
 		// draw screen quad texture
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		// glDisable(GL_DEPTH_TEST);
+		postprocesingBuffer.Bind();
+		glDisable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT || GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-		/*screenShader.use();
+		screenShader.use();
 		screenShader.setBool("gammaCorrection", gammaCorrection);
 		screenShader.setFloat("gamma", gammaValue);
 		glBindVertexArray(quadVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sceneBuffer.getFrameTexture());
-		glDrawArrays(GL_TRIANGLES, 0, 6);*/
-		
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		postprocesingBuffer.UnBind();
 		//ImGui::SetNextWindowSize(ImVec2(fb_width, fb_height));
 
-		
+		// rendering viewport with SRGB enabled so it does not look dark
+		glDisable(GL_FRAMEBUFFER_SRGB);
+
 		ImGui::Begin("Scene window"); {
 
 			ImGui::BeginChild("Game Render");
@@ -445,13 +451,14 @@ int main() {
 
 			if (width != fb_width || height != fb_height || times > 0) {
 				sceneBuffer.rescaleFrameBuffer((float)fb_width, (float)fb_height);
+				postprocesingBuffer.rescaleFrameBuffer((float)fb_width, (float)fb_height);
 				fb_width = (int)width;
 				fb_height = (int)height;
 				times--;
 			}
 
 			ImGui::Image(
-				(ImTextureID)sceneBuffer.getFrameTexture(),
+				(ImTextureID)postprocesingBuffer.getFrameTexture(),
 				availableSize,
 				ImVec2(0, 1),
 				ImVec2(1, 0)
@@ -459,8 +466,6 @@ int main() {
 		}
 		ImGui::EndChild();
 		ImGui::End();
-
-		// glDisable(GL_FRAMEBUFFER_SRGB);
 
 		ImGui::Begin("ImGui window");
 		ImGui::Text("Shadow settings: ");
@@ -482,7 +487,7 @@ int main() {
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		// glEnable(GL_FRAMEBUFFER_SRGB);
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		glfwSwapBuffers(window);
 
