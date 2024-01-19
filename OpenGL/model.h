@@ -1,5 +1,5 @@
 #pragma once
-#include <shader_s.h>
+#include <shader.h>
 #include <mesh.h>
 
 #include <assimp/Importer.hpp>

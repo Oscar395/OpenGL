@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <map>
-#include <shader_s.h>
+#include <shader.h>
 #include <stb_image.h>
 
 #include <glm/glm.hpp>
@@ -113,12 +113,12 @@ int main() {
 
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
-	Shader lightShader("shaders/lightShader.vert", "shaders/lightShader.frag");
+	Shader lightShader("Resources/shaders/lightShader.vert", "Resources/shaders/lightShader.frag");
 	//Shader shaderSingleColor("shaders/lightShader.vert", "shaders/shaderSingleColor.frag");
-	Shader screenShader("shaders/framebuffers_screen.vert", "shaders/framebuffers_screen.frag");
-	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
-	Shader skyboxReflectShader("shaders/skybox_reflect.vert", "shaders/skybox_reflect.frag");
-	Shader simpleDepthShader("shaders/simple_depth_shader.vert", "shaders/simple_depth_shader.frag", "shaders/simple_depth_shader.geom");
+	Shader screenShader("Resources/shaders/framebuffers_screen.vert", "Resources/shaders/framebuffers_screen.frag");
+	Shader skyboxShader("Resources/shaders/skybox.vert", "Resources/shaders/skybox.frag");
+	Shader skyboxReflectShader("Resources/shaders/skybox_reflect.vert", "Resources/shaders/skybox_reflect.frag");
+	Shader simpleDepthShader("Resources/shaders/simple_depth_shader.vert", "Resources/shaders/simple_depth_shader.frag", "Resources/shaders/simple_depth_shader.geom");
 
 	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 		// positions   // texCoords
@@ -133,12 +133,12 @@ int main() {
 
 	vector<std::string> faces
 	{
-		"textures/skybox/right.jpg",
-		"textures/skybox/left.jpg",
-		"textures/skybox/top.jpg",
-		"textures/skybox/bottom.jpg",
-		"textures/skybox/front.jpg",
-		"textures/skybox/back.jpg"
+		"Resources/textures/skybox/right.jpg",
+		"Resources/textures/skybox/left.jpg",
+		"Resources/textures/skybox/top.jpg",
+		"Resources/textures/skybox/bottom.jpg",
+		"Resources/textures/skybox/front.jpg",
+		"Resources/textures/skybox/back.jpg"
 	};
 
 	unsigned int cubemapTextures = loadCubemap(faces);
@@ -274,10 +274,10 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	Model Modelo("models/plano/plane.obj");
-	Model Cube("models/cube/cube.obj");
-	Model Tower("models/tower/wooden watch tower2.obj");
-	Model Wall("models/wall/wall.obj");
+	Model Modelo("Resources/models/plano/plane.obj");
+	Model Cube("Resources/models/cube/cube.obj");
+	Model Tower("Resources/models/tower/wooden watch tower2.obj");
+	Model Wall("Resources/models/wall/wall.obj");
 	//Wall.addNormalTexture("brickwall_normal.jpg");
 	//Model Grass("models/grass/grass.obj");
 

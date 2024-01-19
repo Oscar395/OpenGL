@@ -63,6 +63,18 @@
     <ClCompile Include="FrameBuffer.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="shader.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Engine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer\Timer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Events\Events.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />
@@ -927,7 +939,7 @@
     <ClInclude Include="dependencies\include\glm\gtc\vec1.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="shader_s.h">
+    <ClInclude Include="shader.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="dependencies\include\stb_image.h">
@@ -1084,6 +1096,18 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="FrameBuffer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Engine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer\Timer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\Events.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\CrystalByte.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1496,10 +1520,10 @@
     <None Include="dependencies\include\glm\gtc\ulp.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>
-    <None Include="shaders\lightShader.vert" />
-    <None Include="shaders\lightShader.frag" />
-    <None Include="shaders\skybox_reflect.vert" />
-    <None Include="shaders\skybox_reflect.frag" />
+    <None Include="Resources\shaders\lightShader.vert" />
+    <None Include="Resources\shaders\lightShader.frag" />
+    <None Include="Resources\shaders\skybox_reflect.vert" />
+    <None Include="Resources\shaders\skybox_reflect.frag" />
     <None Include="dependencies\assimp\include\assimp\color4.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>
@@ -1525,52 +1549,52 @@
     <None Include="dependencies\assimp\lib\assimp-vc140-mt.exp" />
     <None Include="dependencies\assimp\lib\assimp-vc140-mt.pdb" />
     <None Include="dependencies\assimp\lib\assimp-vc140-mt.ilk" />
-    <None Include="models\backpack\backpack.mtl" />
-    <None Include="shaders\shaderSingleColor.frag" />
-    <None Include="shaders\framebuffers_screen.frag" />
-    <None Include="shaders\framebuffers_screen.vert" />
-    <None Include="shaders\skybox.vert" />
-    <None Include="shaders\skybox.frag" />
+    <None Include="Resources\models\backpack\backpack.mtl" />
+    <None Include="Resources\shaders\shaderSingleColor.frag" />
+    <None Include="Resources\shaders\framebuffers_screen.frag" />
+    <None Include="Resources\shaders\framebuffers_screen.vert" />
+    <None Include="Resources\shaders\skybox.vert" />
+    <None Include="Resources\shaders\skybox.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="dependencies\include\glm\CMakeLists.txt" />
-    <Text Include="models\backpack\source_attribution.txt" />
+    <Text Include="Resources\models\backpack\source_attribution.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="textures\container.jpg">
+    <Image Include="Resources\textures\container.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="textures\awesomeface.png">
+    <Image Include="Resources\textures\awesomeface.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="textures\container2.png">
+    <Image Include="Resources\textures\container2.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="textures\container2_specular.png">
+    <Image Include="Resources\textures\container2_specular.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="textures\lighting_maps_specular_color.png">
+    <Image Include="Resources\textures\lighting_maps_specular_color.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="textures\matrix.jpg">
+    <Image Include="Resources\textures\matrix.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="textures\lamp.png">
+    <Image Include="Resources\textures\lamp.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="models\backpack\specular.jpg">
+    <Image Include="Resources\models\backpack\specular.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="models\backpack\ao.jpg">
+    <Image Include="Resources\models\backpack\ao.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="models\backpack\diffuse.jpg">
+    <Image Include="Resources\models\backpack\diffuse.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="models\backpack\normal.png">
+    <Image Include="Resources\models\backpack\normal.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
-    <Image Include="models\backpack\roughness.jpg">
+    <Image Include="Resources\models\backpack\roughness.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
   </ItemGroup>

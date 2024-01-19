@@ -106,6 +106,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\OpenGL\dependencies\assimp\include;$(SolutionDir)\OpenGL\dependencies\include;$(SolutionDir)\OpenGL;$(SolutionDir)\OpenGL\imgui</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +125,8 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\OpenGL\dependencies\assimp\include;$(SolutionDir)\OpenGL\dependencies\include;$(SolutionDir)\OpenGL;$(SolutionDir)\OpenGL\imgui</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,6 +141,8 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="dependencies\include\glm\detail\glm.cpp" />
     <ClCompile Include="dependencies\include\stb_image.cpp" />
+    <ClCompile Include="Engine\Engine.cpp" />
+    <ClCompile Include="Events\Events.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -150,6 +156,8 @@
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="scene.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Timer\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\assimp\lib\assimp-vc140-mt.lib" />
@@ -157,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="Core\CrystalByte.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\ai_assert.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\anim.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\camera.h" />
@@ -481,6 +490,8 @@
     <ClInclude Include="dependencies\include\glm\vector_relational.hpp" />
     <ClInclude Include="dependencies\include\KHR\khrplatform.h" />
     <ClInclude Include="dependencies\include\stb_image.h" />
+    <ClInclude Include="Engine\Engine.h" />
+    <ClInclude Include="Events\Events.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -494,7 +505,8 @@
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="scene.h" />
-    <ClInclude Include="shader_s.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\assimp\lib\assimp-vc140-mt.exp" />
@@ -644,34 +656,34 @@
     <None Include="dependencies\include\glm\gtx\vector_angle.inl" />
     <None Include="dependencies\include\glm\gtx\vector_query.inl" />
     <None Include="dependencies\include\glm\gtx\wrap.inl" />
-    <None Include="models\backpack\backpack.mtl" />
-    <None Include="shaders\framebuffers_screen.frag" />
-    <None Include="shaders\framebuffers_screen.vert" />
-    <None Include="shaders\lightShader.frag" />
-    <None Include="shaders\lightShader.vert" />
-    <None Include="shaders\skybox_reflect.frag" />
-    <None Include="shaders\skybox_reflect.vert" />
-    <None Include="shaders\shaderSingleColor.frag" />
-    <None Include="shaders\skybox.frag" />
-    <None Include="shaders\skybox.vert" />
+    <None Include="Resources\models\backpack\backpack.mtl" />
+    <None Include="Resources\shaders\framebuffers_screen.frag" />
+    <None Include="Resources\shaders\framebuffers_screen.vert" />
+    <None Include="Resources\shaders\lightShader.frag" />
+    <None Include="Resources\shaders\lightShader.vert" />
+    <None Include="Resources\shaders\skybox_reflect.frag" />
+    <None Include="Resources\shaders\skybox_reflect.vert" />
+    <None Include="Resources\shaders\shaderSingleColor.frag" />
+    <None Include="Resources\shaders\skybox.frag" />
+    <None Include="Resources\shaders\skybox.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="dependencies\include\glm\CMakeLists.txt" />
-    <Text Include="models\backpack\source_attribution.txt" />
+    <Text Include="Resources\models\backpack\source_attribution.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="models\backpack\ao.jpg" />
-    <Image Include="models\backpack\diffuse.jpg" />
-    <Image Include="models\backpack\normal.png" />
-    <Image Include="models\backpack\roughness.jpg" />
-    <Image Include="models\backpack\specular.jpg" />
-    <Image Include="textures\awesomeface.png" />
-    <Image Include="textures\container.jpg" />
-    <Image Include="textures\container2.png" />
-    <Image Include="textures\container2_specular.png" />
-    <Image Include="textures\lamp.png" />
-    <Image Include="textures\lighting_maps_specular_color.png" />
-    <Image Include="textures\matrix.jpg" />
+    <Image Include="Resources\models\backpack\ao.jpg" />
+    <Image Include="Resources\models\backpack\diffuse.jpg" />
+    <Image Include="Resources\models\backpack\normal.png" />
+    <Image Include="Resources\models\backpack\roughness.jpg" />
+    <Image Include="Resources\models\backpack\specular.jpg" />
+    <Image Include="Resources\textures\awesomeface.png" />
+    <Image Include="Resources\textures\container.jpg" />
+    <Image Include="Resources\textures\container2.png" />
+    <Image Include="Resources\textures\container2_specular.png" />
+    <Image Include="Resources\textures\lamp.png" />
+    <Image Include="Resources\textures\lighting_maps_specular_color.png" />
+    <Image Include="Resources\textures\matrix.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
