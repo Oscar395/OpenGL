@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-namespace CrystalByte {
+namespace ForByte {
 	Engine::Engine() : run(true), window(NULL), videoWidth(SCREEN_WIDTH), videoHeight(SCREEN_HEIGHT) {
 		if (!glfwInit()) {
 			return;
@@ -18,7 +18,7 @@ namespace CrystalByte {
 		glfwWindowHint(GLFW_GREEN_BITS, monitor.greenBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, monitor.refreshRate);
 
-		window = glfwCreateWindow(videoWidth, videoHeight, "CrystalByte", NULL, NULL);
+		window = glfwCreateWindow(videoWidth, videoHeight, "ForByte", NULL, NULL);
 
 		if (!window) {
 			std::cout << "Failed to create the window" << std::endl;

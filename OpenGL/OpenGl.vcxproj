@@ -138,6 +138,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="App.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="dependencies\include\glm\detail\glm.cpp" />
     <ClCompile Include="dependencies\include\stb_image.cpp" />
@@ -165,7 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
-    <ClInclude Include="Core\CrystalByte.h" />
+    <ClInclude Include="Core\ForByte.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\ai_assert.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\anim.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\camera.h" />
@@ -490,6 +491,12 @@
     <ClInclude Include="dependencies\include\glm\vector_relational.hpp" />
     <ClInclude Include="dependencies\include\KHR\khrplatform.h" />
     <ClInclude Include="dependencies\include\stb_image.h" />
+    <ClInclude Include="ECS\Base\BaseComponent.h" />
+    <ClInclude Include="ECS\Base\BaseSystem.h" />
+    <ClInclude Include="ECS\Base\CompList.h" />
+    <ClInclude Include="ECS\Base\EntityManager.h" />
+    <ClInclude Include="ECS\Base\Types.h" />
+    <ClInclude Include="ECS\ECS.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Events\Events.h" />
     <ClInclude Include="FrameBuffer.h" />

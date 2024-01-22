@@ -2,7 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace CrystalByte {
+namespace ForByte {
 	class T_Timer {
 	public:
 		~T_Timer();

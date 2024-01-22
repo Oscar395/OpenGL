@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-namespace CrystalByte {
+namespace ForByte {
 
 	const int SCREEN_WIDTH(1280);
 	const int SCREEN_HEIGHT(720);

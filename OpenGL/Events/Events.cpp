@@ -1,7 +1,7 @@
 #include "Events.h"
 #include "Engine/Engine.h"
 
-namespace CrystalByte {
+namespace ForByte {
 
 	void WindowCloseCallback(GLFWwindow* window);
 
@@ -20,6 +20,6 @@ namespace CrystalByte {
 
 	// callback function implementation
 	void WindowCloseCallback(GLFWwindow* window) {
-		CrystalByte::Core.Quit();
+		ForByte::Core.Quit();
 	}
 }

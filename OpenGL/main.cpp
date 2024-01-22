@@ -57,7 +57,7 @@ float lastY = 300;
 bool firstMouse = true;
 bool moveCamera = true;
 
-int main() {
+int function() {
 
 	if (!glfwInit()) {
 		return -1;

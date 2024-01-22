@@ -1,6 +1,6 @@
 #include "Timer.h"
 
-namespace CrystalByte {
+namespace ForByte {
 	T_Timer::T_Timer() : deltaTime(0.0f), lastFrame(0.0f) {
 
 	}
