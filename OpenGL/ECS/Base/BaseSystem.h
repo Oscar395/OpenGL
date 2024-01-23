@@ -16,7 +16,7 @@ namespace ECS {
 			entities.insert(entity);
 		}
 
-		const EntitySignature GetSignature() const {
+		const Signature GetSignature() const {
 			return signature;
 		}
 
@@ -26,13 +26,18 @@ namespace ECS {
 		}
 
 		virtual void Start() { }
-		virtual void Update() { }
+		virtual void Update() {
+			for (auto i : entities) {
+				std::cout << i << " ";
+			}
+			std::cout << std::endl;
+		}
 		virtual void Render() { }
 		virtual void Destroy() { }
 
 	protected:
 		friend class EntityManager;
-		EntitySignature signature;
+		Signature signature;
 		std::set<EntityID> entities;
 	};
 }

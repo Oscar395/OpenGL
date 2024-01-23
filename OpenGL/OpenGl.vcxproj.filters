@@ -1131,6 +1131,9 @@
     <ClInclude Include="ECS\Base\EntityManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="ECS\Base\Entity.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\include\glm\gtx\wrap.inl">

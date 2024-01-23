@@ -494,6 +494,7 @@
     <ClInclude Include="ECS\Base\BaseComponent.h" />
     <ClInclude Include="ECS\Base\BaseSystem.h" />
     <ClInclude Include="ECS\Base\CompList.h" />
+    <ClInclude Include="ECS\Base\Entity.h" />
     <ClInclude Include="ECS\Base\EntityManager.h" />
     <ClInclude Include="ECS\Base\Types.h" />
     <ClInclude Include="ECS\ECS.h" />

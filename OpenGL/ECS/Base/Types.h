@@ -13,7 +13,7 @@ namespace ECS {
 	using EntityID = size_t;
 	using SystemTypeID = size_t;
 	using ComponentTypeID = size_t;
-	using EntitySignature = std::set<ComponentTypeID>;
+	using Signature = std::set<ComponentTypeID>;
 
 	// returns component runtime type id
 	inline static const ComponentTypeID GetRuntimeComponentTypeID() {
