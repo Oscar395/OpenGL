@@ -30,10 +30,10 @@
     <ClCompile Include="camera.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
+    <ClCompile Include="Objects\mesh.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="model.cpp">
+    <ClCompile Include="Objects\model.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui.cpp">
@@ -60,10 +60,10 @@
     <ClCompile Include="scene.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="FrameBuffer.cpp">
+    <ClCompile Include="Objects\FrameBuffer.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="shader.cpp">
+    <ClCompile Include="Objects\shader.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Engine.cpp">
@@ -76,6 +76,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="App.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\Resource.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -942,7 +945,7 @@
     <ClInclude Include="dependencies\include\glm\gtc\vec1.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="shader.h">
+    <ClInclude Include="Objects\shader.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="dependencies\include\stb_image.h">
@@ -951,10 +954,10 @@
     <ClInclude Include="camera.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="mesh.h">
+    <ClInclude Include="Objects\mesh.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="model.h">
+    <ClInclude Include="Objects\model.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="dependencies\assimp\include\assimp\Compiler\poppack1.h">
@@ -1098,7 +1101,7 @@
     <ClInclude Include="scene.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="FrameBuffer.h">
+    <ClInclude Include="Objects\FrameBuffer.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Engine.h">
@@ -1111,9 +1114,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Core\ForByte.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\ECS.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="ECS\Base\Types.h">
@@ -1132,6 +1132,18 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="ECS\Base\Entity.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\Transform.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Systems\MeshRendererSystem.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\MeshRenderer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Resource.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

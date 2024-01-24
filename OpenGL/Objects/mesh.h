@@ -1,11 +1,10 @@
 #pragma once
 
 #include <glad/glad.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <shader.h>
+#include "shader.h"
 
 #include <string>
 #include <vector>
@@ -38,6 +37,7 @@ public:
 	bool usingHeightMap = false;
 
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices);
 	void Draw(Shader &shader);
 private:
 	// render data

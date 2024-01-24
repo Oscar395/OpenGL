@@ -3,7 +3,6 @@
 #include "ECS/Base/Types.h"
 #include "ECS/Base/Entity.h"
 
-
 class TestComp1 : public ECS::BaseComponent {
 	int A = 5;
 };

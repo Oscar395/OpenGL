@@ -2,13 +2,14 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "scene.h"
-#include "FrameBuffer.h"
+#include "Objects/FrameBuffer.h"
+#include "Objects/shader.h"
+#include "Objects/model.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <map>
-#include <shader.h>
 #include <stb_image.h>
 
 #include <glm/glm.hpp>
@@ -17,8 +18,7 @@
 #include <camera.h>
 #include <cmath>
 #include <limits>
-
-#include <model.h>
+#include <vector>
 
 void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -26,7 +26,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void proccesInput(GLFWwindow* window);
 void setupLights(Shader lightingshader);
-unsigned int loadCubemap(vector<std::string> faces);
+unsigned int loadCubemap(std::vector<std::string> faces);
 std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
 glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane);
 std::vector<glm::mat4> getLightSpaceMatrices();
@@ -131,7 +131,7 @@ int function() {
 		 1.0f,  1.0f,  1.0f, 1.0f
 	};
 
-	vector<std::string> faces
+	std::vector<std::string> faces
 	{
 		"Resources/textures/skybox/right.jpg",
 		"Resources/textures/skybox/left.jpg",
@@ -724,7 +724,7 @@ std::vector<glm::mat4> getLightSpaceMatrices()
 	return ret;
 }
 
-unsigned int loadCubemap(vector<std::string> faces) {
+unsigned int loadCubemap(std::vector<std::string> faces) {
 	stbi_set_flip_vertically_on_load(false);
 	unsigned int textureID;
 	glGenTextures(1, &textureID);

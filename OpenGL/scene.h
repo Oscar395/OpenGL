@@ -1,8 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "shader.h"
-#include "model.h"
+#include "Objects/shader.h"
+#include "Objects/model.h"
 
 class Scene
 {

@@ -1,4 +1,4 @@
-#include <mesh.h>
+#include "mesh.h"
 
 using namespace std;
 
@@ -6,6 +6,13 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
 	this->vertices = vertices;
 	this->indices = indices;
 	this->textures = textures;
+
+	setupMesh();
+}
+
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices) {
+	this->vertices = vertices;
+	this->indices = indices;
 
 	setupMesh();
 }
@@ -22,7 +29,6 @@ void Mesh::setupMesh() {
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
 	// vertex positions
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
@@ -75,17 +81,6 @@ void Mesh::Draw(Shader& shader) {
 	// setting the mesh materials state
 	shader.setBool("usingNormalMap", usingNormalMap);
 	shader.setBool("usingHeightMap", usingHeightMap);
-	/*if (useNormalMap) {
-		glActiveTexture(GL_TEXTURE0 + textures.size() + 1);
-
-		shader.setBool("useNormalMap", true);
-		shader.setInt("normalMap", textures.size() + 1);
-		glBindTexture(GL_TEXTURE_2D, normalMap);
-	}
-	else
-	{
-		shader.setBool("useNormalMap", false);
-	}*/
 
 	// draw mesh
 	glBindVertexArray(VAO);

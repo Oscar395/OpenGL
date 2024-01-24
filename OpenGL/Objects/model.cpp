@@ -1,5 +1,4 @@
-#include <model.h>
-#include <stb_image.h>
+#include "model.h"
 
 unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
 

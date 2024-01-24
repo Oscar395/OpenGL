@@ -181,4 +181,6 @@ namespace ECS {
 		std::map<SystemTypeID, std::shared_ptr<BaseSystem>> registeredSystems;
 		std::map<ComponentTypeID, std::shared_ptr<ICompList>> componentsArrays;
 	};
+
+	EntityManager Manager;
 }

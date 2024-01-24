@@ -1,6 +1,6 @@
 #pragma once
-#include <shader.h>
-#include <mesh.h>
+#include "shader.h"
+#include "mesh.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -8,11 +8,11 @@
 
 #include <string>
 #include <vector>
+#include <stb_image.h>
 
 class Model {
 public:
 	Model(const char* path);
-	void addNormalTexture(const char* path);
 	void Draw(Shader& shader);
 
 private:
