@@ -1,7 +1,6 @@
 #pragma once
 #include "ECS/Base/BaseSystem.h"
 #include "ECS/Components/Components.h"
-#include "Resource/Resource.h"
 
 class MeshRendererSystem : public ECS::BaseSystem {
 public:
@@ -9,8 +8,8 @@ public:
 		AddComponentSignature<Transform>();
 		AddComponentSignature<MeshRenderer>();
 
-		shader.use();
-		shader = Resource.ShaderProgram("LIGHT");
+		//shader.use();
+		//shader = Resource.ShaderProgram("LIGHT");
 	}
 
 	void Update() override {

@@ -27,4 +27,4 @@ private:
 	RsrcManager();
 };
 
-static RsrcManager& Resource = RsrcManager::ref();
+// static RsrcManager& Resource = RsrcManager::ref();

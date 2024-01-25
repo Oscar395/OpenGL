@@ -7,6 +7,7 @@
 #include "Objects/model.h"
 #include "Objects/camera.h"
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <map>
@@ -56,7 +57,7 @@ float lastY = 300;
 bool firstMouse = true;
 bool moveCamera = true;
 
-int function() {
+int main() {
 
 	if (!glfwInit()) {
 		return -1;
@@ -93,11 +94,11 @@ int function() {
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwGetFramebufferSize(window, &fb_width, &fb_height);
 
-	/*if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to load openGL function pointers" << std::endl;
 		glfwTerminate();
 		return -1;
-	}*/
+	}
 
 	stbi_set_flip_vertically_on_load(true);
 

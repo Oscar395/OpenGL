@@ -8,7 +8,7 @@ struct MeshRenderer : public ECS::BaseComponent
 	~MeshRenderer() = default;
 
 	MeshRenderer() : Name("CUBE") {
-		Renderer = Resource.GetMesh(Name);
+		//Renderer = Resource.GetMesh(Name);
 	}
 
 	std::shared_ptr<Mesh> Renderer;

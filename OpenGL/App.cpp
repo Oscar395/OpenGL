@@ -1,5 +1,3 @@
-#include "Core/ForByte.h"
-
 #include "ECS/Base/Types.h"
 #include "ECS/Base/Entity.h"
 #include "ECS/Systems/MeshRendererSystem.h"
@@ -7,7 +5,7 @@
 #include "ECS/Components/Components.h"
 #include <glad/glad.h>
 
-int main(int argc, char** argv) {
+int function(int argc, char** argv) {
 
 	ECS::Manager.RegisterSystem<CameraSystem>();
 	auto cameraEntity = ECS::Manager.AddNewEntity();
@@ -25,9 +23,9 @@ int main(int argc, char** argv) {
 	//entity.AddComponent<Transform>();
 	//entity.AddComponent<MeshRenderer>();
 
-	ECS::Manager.Update();
+	
 
-	ForByte::Core.Initialize();
+	/*ForByte::Core.Initialize();
 	ForByte::Timer.Initialize();
 	ForByte::Event.Initialize();
 
@@ -35,9 +33,9 @@ int main(int argc, char** argv) {
 	{
 		ForByte::Timer.Tick();
 		ForByte::Core.Update();
-		// ECS::Manager.Update();
+		ECS::Manager.Update();
 		ForByte::Event.Poll();
-	}
+	}*/
 
 	return EXIT_SUCCESS;
 }
