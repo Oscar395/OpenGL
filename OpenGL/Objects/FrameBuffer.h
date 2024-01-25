@@ -6,6 +6,7 @@
 
 class FrameBuffer {
 public:
+	FrameBuffer() = default;
 	FrameBuffer(float width, float height, bool multiSample = true);
 	~FrameBuffer();
 	unsigned int getFrameTexture();

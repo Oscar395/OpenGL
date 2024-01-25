@@ -3,6 +3,7 @@
 #include "Types.h"
 
 namespace ECS {
+
 	class BaseSystem {
 	public:
 		BaseSystem() = default;

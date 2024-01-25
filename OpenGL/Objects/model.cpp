@@ -20,6 +20,10 @@ void Model::Draw(Shader &shader) {
 	}
 }
 
+Mesh Model::GetFirstMesh() {
+	return meshes[0];
+}
+
 void Model::loadModel(string path) {
 	Assimp::Importer import;
 	const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);

@@ -5,8 +5,8 @@
 #include "Objects/FrameBuffer.h"
 #include "Objects/shader.h"
 #include "Objects/model.h"
+#include "Objects/camera.h"
 
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <map>
@@ -15,7 +15,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <camera.h>
 #include <cmath>
 #include <limits>
 #include <vector>
@@ -94,11 +93,11 @@ int function() {
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwGetFramebufferSize(window, &fb_width, &fb_height);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+	/*if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to load openGL function pointers" << std::endl;
 		glfwTerminate();
 		return -1;
-	}
+	}*/
 
 	stbi_set_flip_vertically_on_load(true);
 

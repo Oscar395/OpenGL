@@ -2,59 +2,30 @@
 
 #include "ECS/Base/Types.h"
 #include "ECS/Base/Entity.h"
-
-class TestComp1 : public ECS::BaseComponent {
-	int A = 5;
-};
-
-class TestComp2 : public ECS::BaseComponent {
-	int A = 5;
-};
-
-class TestSystem1 : public ECS::BaseSystem {
-public:
-	TestSystem1() {
-		AddComponentSignature<TestComp1>();
-	}
-};
-
-class TestSystem2 : public ECS::BaseSystem {
-public:
-	TestSystem2() {
-		AddComponentSignature<TestComp2>();
-	}
-};
-
-class TestSystem3 : public ECS::BaseSystem {
-public:
-	TestSystem3() {
-		AddComponentSignature<TestComp1>();
-		AddComponentSignature<TestComp2>();
-	}
-};
-
+#include "ECS/Systems/MeshRendererSystem.h"
+#include "ECS/Systems/CameraSystem.h"
+#include "ECS/Components/Components.h"
+#include <glad/glad.h>
 
 int main(int argc, char** argv) {
 
-	ECS::EntityManager mgr;
-	
-	mgr.RegisterSystem<TestSystem1>();
-	mgr.RegisterSystem<TestSystem2>();
-	mgr.RegisterSystem<TestSystem3>();
+	ECS::Manager.RegisterSystem<CameraSystem>();
+	auto cameraEntity = ECS::Manager.AddNewEntity();
+	ECS::Entity camEntity(cameraEntity, &ECS::Manager);
+	camEntity.AddComponent<Transform>();
 
-	auto entity1 = mgr.AddNewEntity();
-	ECS::Entity ent(entity1, &mgr);
+	std::cout << camEntity.GetID() << std::endl;
 
-	ent.AddComponent<TestComp1>();
+	/*ECS::Manager.RegisterSystem<MeshRendererSystem>();
 
-	auto entity2 = mgr.AddNewEntity();
-	mgr.AddComponent<TestComp2>(entity2);
+	auto entityId = ECS::Manager.AddNewEntity();
+	ECS::Manager.AddComponent<Transform>(entityId);
+	ECS::Manager.AddComponent<MeshRenderer>(entityId);*/
+	//ECS::Entity entity(entityId, &ECS::Manager);
+	//entity.AddComponent<Transform>();
+	//entity.AddComponent<MeshRenderer>();
 
-	auto entity3 = mgr.AddNewEntity();
-	mgr.AddComponent<TestComp1>(entity3);
-	mgr.AddComponent<TestComp2>(entity3);
-
-	mgr.Update();
+	ECS::Manager.Update();
 
 	ForByte::Core.Initialize();
 	ForByte::Timer.Initialize();
@@ -63,8 +34,9 @@ int main(int argc, char** argv) {
 	while (ForByte::Core.Run())
 	{
 		ForByte::Timer.Tick();
-		ForByte::Event.Poll();
 		ForByte::Core.Update();
+		// ECS::Manager.Update();
+		ForByte::Event.Poll();
 	}
 
 	return EXIT_SUCCESS;

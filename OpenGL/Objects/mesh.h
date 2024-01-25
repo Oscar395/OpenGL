@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -36,6 +35,7 @@ public:
 	bool usingNormalMap = false;
 	bool usingHeightMap = false;
 
+	Mesh() = default;
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices);
 	void Draw(Shader &shader);

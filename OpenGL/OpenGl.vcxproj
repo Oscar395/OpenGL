@@ -139,7 +139,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
-    <ClCompile Include="camera.cpp" />
+    <ClCompile Include="Objects\camera.cpp" />
     <ClCompile Include="dependencies\include\glm\detail\glm.cpp" />
     <ClCompile Include="dependencies\include\stb_image.cpp" />
     <ClCompile Include="Engine\Engine.cpp" />
@@ -166,7 +166,7 @@
     <Library Include="dependencies\lib\glfw3.lib" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
+    <ClInclude Include="Objects\camera.h" />
     <ClInclude Include="Core\ForByte.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\ai_assert.h" />
     <ClInclude Include="dependencies\assimp\include\assimp\anim.h" />
@@ -498,8 +498,10 @@
     <ClInclude Include="ECS\Base\Entity.h" />
     <ClInclude Include="ECS\Base\EntityManager.h" />
     <ClInclude Include="ECS\Base\Types.h" />
+    <ClInclude Include="ECS\Components\Components.h" />
     <ClInclude Include="ECS\Components\MeshRenderer.h" />
     <ClInclude Include="ECS\Components\Transform.h" />
+    <ClInclude Include="ECS\Systems\CameraSystem.h" />
     <ClInclude Include="ECS\Systems\MeshRendererSystem.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Events\Events.h" />

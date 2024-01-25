@@ -9,6 +9,7 @@
 #include <iostream>
 
 namespace ECS {
+
 	class EntityManager {
 	public:
 		EntityManager() : entityCount(0) {
@@ -23,6 +24,7 @@ namespace ECS {
 		void Update() {
 			for (auto& system : registeredSystems) {
 				system.second->Update();
+				//system.second->Render();
 			}
 		}
 
@@ -175,7 +177,7 @@ namespace ECS {
 		}
 
 	private:
-		EntityID entityCount;
+		EntityID entityCount = 0;
 		std::queue<EntityID> availableEntities;
 		std::map<EntityID, std::shared_ptr<Signature>> entitiesSignatures;
 		std::map<SystemTypeID, std::shared_ptr<BaseSystem>> registeredSystems;

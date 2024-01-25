@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Objects/model.h"
+#include "Objects/shader.h"
 #include <map>
 
 class RsrcManager {
@@ -14,11 +15,15 @@ public:
 		return reference;
 	}
 
-	void GetMesh(std::string name);
+	std::shared_ptr<Mesh> GetMesh(std::string name);
+
+	Shader ShaderProgram(std::string name);
 
 private:
 	std::map<std::string, Mesh> meshes;
-	void loadCubeMesh();
+	std::map<std::string, Shader> shaders;
+	Mesh loadCubeMesh();
+	void loadShaders();
 	RsrcManager();
 };
 

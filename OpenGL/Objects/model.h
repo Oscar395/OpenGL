@@ -14,6 +14,7 @@ class Model {
 public:
 	Model(const char* path);
 	void Draw(Shader& shader);
+	Mesh GetFirstMesh();
 
 private:
 	// model data

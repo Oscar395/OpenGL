@@ -1,152 +1,29 @@
 #include "Resource.h"
 
 RsrcManager::RsrcManager() {
-
+	meshes["CUBE"] = loadCubeMesh();
+	loadShaders();
 }
 RsrcManager::~RsrcManager() {
 
 }
 
-void RsrcManager::GetMesh(std::string name) {
-
+void RsrcManager::loadShaders() {
+	shaders["LIGHT"] = Shader("Resources/shaders/lightShader.vert", "Resources/shaders/lightShader.frag");
 }
 
-void RsrcManager::loadCubeMesh() {
-	vector<Vertex> vertices;
+Shader RsrcManager::ShaderProgram(std::string name) {
+	return shaders[name];
+}
 
-	vector<glm::vec3> positions = {
-		// back face
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f, -1.0f),
-		glm::vec3(1.0f, -1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f, -1.0f),
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		glm::vec3(-1.0f,  1.0f, -1.0f),
-		// front face
-		glm::vec3(-1.0f, -1.0f,  1.0f),
-		glm::vec3(1.0f, -1.0f,  1.0f),
-		glm::vec3(1.0f,  1.0f,  1.0f),
-		glm::vec3(1.0f,  1.0f,  1.0f),
-		glm::vec3(-1.0f,  1.0f,  1.0f),
-		glm::vec3(-1.0f, -1.0f,  1.0f),
-		// left face
-		glm::vec3(-1.0f,  1.0f,  1.0f),
-		glm::vec3(-1.0f,  1.0f, -1.0f),
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		glm::vec3(-1.0f, -1.0f,  1.0f),
-		glm::vec3(-1.0f,  1.0f,  1.0f),
-		// right face
-		glm::vec3(1.0f,  1.0f,  1.0f),
-		glm::vec3(1.0f, -1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f, -1.0f),
-		glm::vec3(1.0f, -1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f,  1.0f),
-		glm::vec3(1.0f, -1.0f,  1.0f),
-		// bottom face
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		glm::vec3(1.0f, -1.0f, -1.0f),
-		glm::vec3(1.0f, -1.0f,  1.0f),
-		glm::vec3(1.0f, -1.0f,  1.0f),
-		glm::vec3(-1.0f, -1.0f,  1.0f),
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		// top face
-		glm::vec3(-1.0f,  1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f , 1.0f),
-		glm::vec3(1.0f,  1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f,  1.0f),
-		glm::vec3(-1.0f,  1.0f, -1.0f),
-		glm::vec3(-1.0f,  1.0f,  1.0f)
-	};
+std::shared_ptr<Mesh> RsrcManager::GetMesh(std::string name) {
+	// assert(meshes.find(name) != meshes.end() && "mesh does not exits!");
+	return std::make_shared<Mesh>(meshes[name]);
+}
 
-	vector<glm::vec3> normals = {
-		// back face
-		glm::vec3(0.0f,  0.0f, -1.0f),
-		glm::vec3(0.0f,  0.0f, -1.0f),
-		glm::vec3(0.0f,  0.0f, -1.0f),
-		glm::vec3(0.0f,  0.0f, -1.0f),
-		glm::vec3(0.0f,  0.0f, -1.0f),
-		glm::vec3(0.0f,  0.0f, -1.0f),
-		// front face
-		glm::vec3(0.0f,  0.0f,  1.0f),
-		glm::vec3(0.0f,  0.0f,  1.0f),
-		glm::vec3(0.0f,  0.0f,  1.0f),
-		glm::vec3(0.0f,  0.0f,  1.0f),
-		glm::vec3(0.0f,  0.0f,  1.0f),
-		glm::vec3(0.0f,  0.0f,  1.0f),
-		// left face
-		glm::vec3(-1.0f,  0.0f,  0.0f),
-		glm::vec3(-1.0f,  0.0f,  0.0f),
-		glm::vec3(-1.0f,  0.0f,  0.0f),
-		glm::vec3(-1.0f,  0.0f,  0.0f),
-		glm::vec3(-1.0f,  0.0f,  0.0f),
-		glm::vec3(-1.0f,  0.0f,  0.0f),
-		// right face
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		// bottom face
-		glm::vec3(0.0f, -1.0f,  0.0f),
-		glm::vec3(0.0f, -1.0f,  0.0f),
-		glm::vec3(0.0f, -1.0f,  0.0f),
-		glm::vec3(0.0f, -1.0f,  0.0f),
-		glm::vec3(0.0f, -1.0f,  0.0f),
-		glm::vec3(0.0f, -1.0f,  0.0f),
-		// top face
-		glm::vec3(0.0f,  1.0f,  0.0f),
-		glm::vec3(0.0f,  1.0f,  0.0f),
-		glm::vec3(0.0f,  1.0f,  0.0f),
-		glm::vec3(0.0f,  1.0f,  0.0f),
-		glm::vec3(0.0f,  1.0f,  0.0f),
-		glm::vec3(0.0f,  1.0f,  0.0f)
-	};
+Mesh RsrcManager::loadCubeMesh() {
+	Model cube("Resources/models/cube/cube.obj");
+	std::cout << "cube loaded" << std::endl;
 
-	vector<glm::vec2> texture_coords = {
-		// back face
-		glm::vec2(0.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(0.0f, 0.0f),
-		glm::vec2(0.0f, 1.0f),
-		// front face
-		glm::vec2(0.0f, 0.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(0.0f, 0.0f),
-		// left face
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(0.0f, 0.0f),
-		glm::vec2(1.0f, 0.0f),
-		// right face
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(0.0f, 0.0f),
-		// bottom face
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(0.0f, 0.0f),
-		glm::vec2(0.0f, 1.0f),
-		// top face
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f),
-		glm::vec2(1.0f, 0.0f),
-		glm::vec2(0.0f, 1.0f),
-		glm::vec2(0.0f, 0.0f)
-	};
-
+	return cube.GetFirstMesh();
 }

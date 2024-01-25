@@ -9,8 +9,6 @@ namespace ECS {
 	const size_t MAX_ENTITY_COUNT = 5000;
 	const size_t MAX_COMP_COUNT = 32;
 
-	//const EntityManager Manager;
-
 	// custom types
 	using EntityID = size_t;
 	using SystemTypeID = size_t;
